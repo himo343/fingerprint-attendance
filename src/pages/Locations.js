@@ -13,6 +13,8 @@ import {
   TableHead,
   TableRow,
 } from "@mui/material";
+import { MapContainer, TileLayer, Marker, Circle, useMapEvents } from "react-leaflet";
+import "leaflet/dist/leaflet.css";
 
 const Locations = () => {
   const [locations, setLocations] = useState([]);
@@ -20,9 +22,9 @@ const Locations = () => {
     name: "",
     address: "",
     city: "",
-    latitude: "",
-    longitude: "",
-    radius: "",
+    latitude: 15.5527, // إحداثيات افتراضية
+    longitude: 48.5164,
+    radius: 1000, // النطاق الافتراضي
   });
 
   const handleInputChange = (e) => {
@@ -41,13 +43,36 @@ const Locations = () => {
     ) {
       const newLocation = {
         ...formData,
-        createdAt: new Date().toLocaleString(), // إضافة تاريخ الإنشاء
+        createdAt: new Date().toLocaleString(),
       };
       setLocations([...locations, newLocation]);
-      setFormData({ name: "", address: "", city: "", latitude: "", longitude: "", radius: "" });
+      setFormData({
+        name: "",
+        address: "",
+        city: "",
+        latitude: 15.5527,
+        longitude: 48.5164,
+        radius: 1000,
+      });
     } else {
       alert("يرجى ملء جميع الحقول.");
     }
+  };
+
+  const LocationMarker = () => {
+    useMapEvents({
+      click(e) {
+        setFormData({
+          ...formData,
+          latitude: e.latlng.lat,
+          longitude: e.latlng.lng,
+        });
+      },
+    });
+
+    return (
+      <Marker position={[formData.latitude, formData.longitude]} />
+    );
   };
 
   return (
@@ -93,26 +118,6 @@ const Locations = () => {
           </Grid>
           <Grid item xs={12} sm={6}>
             <TextField
-              label="خطوط العرض"
-              name="latitude"
-              variant="outlined"
-              fullWidth
-              value={formData.latitude}
-              onChange={handleInputChange}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              label="خطوط الطول"
-              name="longitude"
-              variant="outlined"
-              fullWidth
-              value={formData.longitude}
-              onChange={handleInputChange}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
               label="نطاق الموقع (radius)"
               name="radius"
               type="number"
@@ -122,18 +127,38 @@ const Locations = () => {
               onChange={handleInputChange}
             />
           </Grid>
-          <Grid item xs={12}>
-            <Button
-              variant="contained"
-              color="primary"
-              fullWidth
-              sx={{ height: "56px", fontSize: "16px", fontWeight: "bold" }}
-              onClick={handleAddLocation}
-            >
-              إضافة الموقع
-            </Button>
-          </Grid>
         </Grid>
+
+        <Typography variant="h6" sx={{ marginTop: "20px", color: "#001F3F" }}>
+          تحديد الإحداثيات:
+        </Typography>
+        <Box sx={{ height: "400px", width: "100%", marginTop: "10px" }}>
+          <MapContainer
+            center={[formData.latitude, formData.longitude]}
+            zoom={10}
+            style={{ height: "100%", width: "100%" }}
+          >
+            <TileLayer
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            />
+            <LocationMarker />
+            <Circle
+              center={[formData.latitude, formData.longitude]}
+              radius={parseInt(formData.radius)}
+              pathOptions={{ fillColor: "blue", color: "#001F3F" }}
+            />
+          </MapContainer>
+        </Box>
+        <Button
+          variant="contained"
+          color="primary"
+          fullWidth
+          sx={{ height: "56px", fontSize: "16px", fontWeight: "bold", marginTop: "20px" }}
+          onClick={handleAddLocation}
+        >
+          إضافة الموقع
+        </Button>
       </Paper>
 
       <Paper elevation={3} sx={{ padding: "20px", borderRadius: "16px" }}>
@@ -163,7 +188,7 @@ const Locations = () => {
                     <TableCell>{location.latitude}</TableCell>
                     <TableCell>{location.longitude}</TableCell>
                     <TableCell>{location.radius}</TableCell>
-                    <TableCell>{location.createdAt}</TableCell> {/* عرض createdAt */}
+                    <TableCell>{location.createdAt}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
