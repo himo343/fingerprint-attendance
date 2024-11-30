@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Button,
@@ -14,54 +14,102 @@ import {
   TableHead,
   TableRow,
   IconButton,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Select,
+  MenuItem,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import LinkIcon from "@mui/icons-material/Link";
 
 const Employees = () => {
   const [employeeData, setEmployeeData] = useState({
     fullName: "",
     employeeId: "",
-    password: "",
     department: "",
     birthDate: "",
     baseSalary: "",
+    email: "",
   });
 
-  const [employees, setEmployees] = useState([]);
+  const [employees, setEmployees] = useState([]); // بيانات الموظفين
+  const [locations, setLocations] = useState([]); // بيانات المواقع
   const [snackbar, setSnackbar] = useState({ open: false, message: "" });
+  const [openDialog, setOpenDialog] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  const [selectedEmployeeIndex, setSelectedEmployeeIndex] = useState(null);
+  const [selectedLocation, setSelectedLocation] = useState("");
 
-  const generateRandomPassword = () => {
-    const chars =
-      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-    let password = "";
-    for (let i = 0; i < 8; i++) {
-      password += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return password;
-  };
+  // جلب البيانات من قاعدة البيانات (وهمية هنا)
+  useEffect(() => {
+    // بيانات الموظفين الوهمية
+    const mockEmployees = [
+      {
+        fullName: "أحمد محمد",
+        employeeId: "001",
+        department: "الموارد البشرية",
+        birthDate: "1990-01-01",
+        baseSalary: "5000",
+        email: "ahmed@example.com",
+        location: "موقع 1",
+      },
+      {
+        fullName: "سارة علي",
+        employeeId: "002",
+        department: "تكنولوجيا المعلومات",
+        birthDate: "1995-06-15",
+        baseSalary: "6000",
+        email: "sara@example.com",
+        location: "موقع 2",
+      },
+    ];
 
+    // بيانات المواقع الوهمية
+    const mockLocations = ["موقع 1", "موقع 2", "موقع 3"];
+
+    setEmployees(mockEmployees);
+    setLocations(mockLocations);
+  }, []);
+
+  // تحديث البيانات المدخلة
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setEmployeeData({ ...employeeData, [name]: value });
   };
 
-  const handleAddEmployee = (e) => {
+  // إضافة أو تعديل موظف
+  const handleSaveEmployee = (e) => {
     e.preventDefault();
-    setEmployees([...employees, { ...employeeData }]);
-    setSnackbar({ open: true, message: "تم إضافة الموظف بنجاح!" });
+    if (editMode) {
+      // تعديل موظف
+      const updatedEmployees = [...employees];
+      updatedEmployees[selectedEmployeeIndex] = employeeData;
+      setEmployees(updatedEmployees);
+      setSnackbar({ open: true, message: "تم تعديل بيانات الموظف بنجاح!" });
+    } else {
+      // إضافة موظف جديد
+      setEmployees([...employees, { ...employeeData, location: "" }]);
+      setSnackbar({ open: true, message: "تم إضافة الموظف بنجاح!" });
+    }
 
+    // إعادة تعيين البيانات
     setEmployeeData({
       fullName: "",
       employeeId: "",
-      password: generateRandomPassword(),
       department: "",
       birthDate: "",
       baseSalary: "",
+      email: "",
     });
+    setEditMode(false);
+    setSelectedEmployeeIndex(null);
   };
 
+  // حذف موظف
   const handleDeleteEmployee = (index) => {
     const updatedEmployees = employees.filter((_, i) => i !== index);
     setEmployees(updatedEmployees);
@@ -70,6 +118,36 @@ const Employees = () => {
 
   const handleCloseSnackbar = () => {
     setSnackbar({ open: false, message: "" });
+  };
+
+  // تعديل موظف
+  const handleEditEmployee = (index) => {
+    setEmployeeData(employees[index]);
+    setEditMode(true);
+    setSelectedEmployeeIndex(index);
+  };
+
+  // فتح نافذة الحوار لربط الموقع
+  const handleOpenDialog = (index) => {
+    setSelectedEmployeeIndex(index);
+    setOpenDialog(true);
+  };
+
+  // غلق نافذة الحوار
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+    setSelectedLocation("");
+  };
+
+  // حفظ الموقع المرتبط
+  const handleSaveLocation = () => {
+    if (selectedEmployeeIndex !== null) {
+      const updatedEmployees = [...employees];
+      updatedEmployees[selectedEmployeeIndex].location = selectedLocation;
+      setEmployees(updatedEmployees);
+      setSnackbar({ open: true, message: "تم ربط الموقع بالموظف بنجاح!" });
+    }
+    handleCloseDialog();
   };
 
   return (
@@ -95,7 +173,7 @@ const Employees = () => {
         إدارة الموظفين
       </Typography>
 
-      {/* نموذج إضافة موظف */}
+      {/* نموذج إضافة/تعديل موظف */}
       <Paper
         elevation={1}
         sx={{
@@ -111,10 +189,10 @@ const Employees = () => {
           gutterBottom
           sx={{ color: "#3A6D8C", fontWeight: "bold", textAlign: "center" }}
         >
-          إضافة موظف جديد
+          {editMode ? "تعديل بيانات الموظف" : "إضافة موظف جديد"}
         </Typography>
 
-        <form onSubmit={handleAddEmployee}>
+        <form onSubmit={handleSaveEmployee}>
           <Grid container spacing={2}>
             <Grid item xs={12} sm={6}>
               <TextField
@@ -136,17 +214,6 @@ const Employees = () => {
                 required
                 value={employeeData.employeeId}
                 onChange={handleInputChange}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                label="كلمة المرور (تلقائية)"
-                name="password"
-                variant="outlined"
-                fullWidth
-                required
-                value={employeeData.password || generateRandomPassword()}
-                disabled
               />
             </Grid>
             <Grid item xs={12} sm={6}>
@@ -185,19 +252,30 @@ const Employees = () => {
                 onChange={handleInputChange}
               />
             </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                label="البريد الإلكتروني"
+                name="email"
+                variant="outlined"
+                fullWidth
+                required
+                value={employeeData.email}
+                onChange={handleInputChange}
+              />
+            </Grid>
             <Grid item xs={12}>
               <Button
                 type="submit"
                 fullWidth
                 variant="contained"
                 color="primary"
-                startIcon={<AddIcon />}
+                startIcon={editMode ? <EditIcon /> : <AddIcon />}
                 sx={{
                   fontWeight: "bold",
                   height: "48px",
                 }}
               >
-                إضافة
+                {editMode ? "حفظ التعديلات" : "إضافة"}
               </Button>
             </Grid>
           </Grid>
@@ -230,9 +308,8 @@ const Employees = () => {
                 <TableCell sx={{ color: "white", fontWeight: "bold" }}>اسم الموظف</TableCell>
                 <TableCell sx={{ color: "white", fontWeight: "bold" }}>رقم الموظف</TableCell>
                 <TableCell sx={{ color: "white", fontWeight: "bold" }}>القسم</TableCell>
-                <TableCell sx={{ color: "white", fontWeight: "bold" }}>تاريخ الميلاد</TableCell>
-                <TableCell sx={{ color: "white", fontWeight: "bold" }}>الراتب</TableCell>
-                <TableCell sx={{ color: "white", fontWeight: "bold" }}>الإجراء</TableCell>
+                <TableCell sx={{ color: "white", fontWeight: "bold" }}>الموقع</TableCell>
+                <TableCell sx={{ color: "white", fontWeight: "bold" }}>الإجراءات</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -241,20 +318,16 @@ const Employees = () => {
                   <TableCell>{employee.fullName}</TableCell>
                   <TableCell>{employee.employeeId}</TableCell>
                   <TableCell>{employee.department}</TableCell>
-                  <TableCell>{employee.birthDate}</TableCell>
-                  <TableCell>{employee.baseSalary}</TableCell>
+                  <TableCell>{employee.location || "غير مرتبط"}</TableCell>
                   <TableCell>
-                    <IconButton
-                      color="primary"
-                      onClick={() => alert("تعديل الموظف")}
-                    >
+                    <IconButton color="primary" onClick={() => handleEditEmployee(index)}>
                       <EditIcon />
                     </IconButton>
-                    <IconButton
-                      color="secondary"
-                      onClick={() => handleDeleteEmployee(index)}
-                    >
+                    <IconButton color="secondary" onClick={() => handleDeleteEmployee(index)}>
                       <DeleteIcon />
+                    </IconButton>
+                    <IconButton color="primary" onClick={() => handleOpenDialog(index)}>
+                      <LinkIcon />
                     </IconButton>
                   </TableCell>
                 </TableRow>
@@ -263,6 +336,30 @@ const Employees = () => {
           </Table>
         </TableContainer>
       </Paper>
+
+      {/* نافذة حوار اختيار الموقع */}
+      <Dialog open={openDialog} onClose={handleCloseDialog}>
+        <DialogTitle>ربط الموظف بموقع</DialogTitle>
+        <DialogContent>
+          <Select
+            fullWidth
+            value={selectedLocation}
+            onChange={(e) => setSelectedLocation(e.target.value)}
+          >
+            {locations.map((location, index) => (
+              <MenuItem key={index} value={location}>
+                {location}
+              </MenuItem>
+            ))}
+          </Select>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDialog}>إلغاء</Button>
+          <Button onClick={handleSaveLocation} color="primary">
+            حفظ
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <Snackbar
         open={snackbar.open}
