@@ -1,14 +1,12 @@
 import React from "react";
-import {
-  Grid,
-  Card,
-  CardContent,
-  Typography,
-  Box,
-} from "@mui/material";
+import { Grid, Card, CardContent, Typography, Box, IconButton } from "@mui/material";
+import RefreshIcon from "@mui/icons-material/Refresh";
+import { useData } from "../context/DataContext"; // استيراد الـ Context
 import Chart from "react-apexcharts";
 
 const Dashboard = () => {
+  const { data, updateData } = useData(); // الحصول على البيانات ودالة التحديث من الـ Context
+
   const donutChartData = {
     series: [80, 10, 10],
     options: {
@@ -89,6 +87,24 @@ const Dashboard = () => {
         لوحة التحكم
       </Typography>
 
+      {/* زر تحديث البيانات */}
+      <IconButton
+        color="primary"
+        onClick={updateData} // عند الضغط على الزر سيتم تحديث البيانات
+        sx={{
+          position: "fixed",
+          top: "20px",
+          right: "20px",
+          zIndex: 1000,
+          backgroundColor: "#3A6D8C",
+          color: "#fff",
+          borderRadius: "50%",
+          padding: "10px",
+        }}
+      >
+        <RefreshIcon />
+      </IconButton>
+
       {/* المؤشرات الرئيسية */}
       <Grid container spacing={3}>
         <Grid item xs={12} md={3}>
@@ -102,7 +118,7 @@ const Dashboard = () => {
           >
             <CardContent>
               <Typography variant="h6">إجمالي الموظفين</Typography>
-              <Typography variant="h4">150</Typography>
+              <Typography variant="h4">{data.employees}</Typography>
             </CardContent>
           </Card>
         </Grid>
@@ -117,7 +133,7 @@ const Dashboard = () => {
           >
             <CardContent>
               <Typography variant="h6">حضور اليوم</Typography>
-              <Typography variant="h4">135</Typography>
+              <Typography variant="h4">{data.attendance}</Typography>
             </CardContent>
           </Card>
         </Grid>
@@ -132,7 +148,7 @@ const Dashboard = () => {
           >
             <CardContent>
               <Typography variant="h6">غيابات اليوم</Typography>
-              <Typography variant="h4">15</Typography>
+              <Typography variant="h4">{data.absences}</Typography>
             </CardContent>
           </Card>
         </Grid>

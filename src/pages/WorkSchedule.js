@@ -31,7 +31,7 @@ const WorkSchedule = () => {
     type: "daily", // daily or weekly
     startTime: "",
     endTime: "",
-    employees: "",
+    employees: [],
     daysOff: [], // New field for days off
   });
 
@@ -43,6 +43,13 @@ const WorkSchedule = () => {
     "الخميس",
     "الجمعة",
     "السبت",
+  ];
+
+  // Sample employees data for demo purposes
+  const employees = [
+    { employeeId: 1, fullName: "أحمد علي" },
+    { employeeId: 2, fullName: "سارة محمد" },
+    { employeeId: 3, fullName: "محمود خالد" },
   ];
 
   // Handle Dialog Open/Close
@@ -73,7 +80,7 @@ const WorkSchedule = () => {
       type: "daily",
       startTime: "",
       endTime: "",
-      employees: "",
+      employees: [],
       daysOff: [],
     });
     handleDialogClose();
@@ -112,7 +119,16 @@ const WorkSchedule = () => {
                   <TableCell>{schedule.type === "daily" ? "يومي" : "أسبوعي"}</TableCell>
                   <TableCell>{schedule.startTime}</TableCell>
                   <TableCell>{schedule.endTime}</TableCell>
-                  <TableCell>{schedule.employees}</TableCell>
+                  <TableCell>
+                    {schedule.employees && schedule.employees.length > 0
+                      ? schedule.employees
+                          .map((empId) => {
+                            const emp = employees.find((e) => e.employeeId === empId);
+                            return emp ? emp.fullName : "";
+                          })
+                          .join(", ")
+                      : "لا توجد موظفين"}
+                  </TableCell>
                   <TableCell>{schedule.daysOff.join(", ")}</TableCell>
                 </TableRow>
               ))
@@ -186,7 +202,10 @@ const WorkSchedule = () => {
                 label="الموظفون (أدخل الأسماء مفصولة بفواصل)"
                 name="employees"
                 value={newSchedule.employees}
-                onChange={handleChange}
+                onChange={(e) => {
+                  const value = e.target.value.split(",").map((val) => val.trim());
+                  setNewSchedule((prev) => ({ ...prev, employees: value }));
+                }}
                 fullWidth
                 variant="outlined"
               />

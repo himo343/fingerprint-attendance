@@ -15,7 +15,7 @@ import PeopleIcon from "@mui/icons-material/People";
 import EventNoteIcon from "@mui/icons-material/EventNote";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
-
+import RequestPageIcon from "@mui/icons-material/RequestPage"; // أيقونة جديدة للاستئذانات
 
 const Sidebar = () => {
   const menuItems = [
@@ -25,8 +25,8 @@ const Sidebar = () => {
     { text: "إدارة الموظفين", icon: <PeopleIcon />, link: "/employees" },
     { text: "إدارة المواقع", icon: <LocationOnIcon />, link: "/locations" },
     { text: "الإشعارات", icon: <NotificationsIcon />, link: "/notifications" },
-    { text: "ادارة نماذج الدوام", icon: <EventNoteIcon />, link: "/work-schedule" },
-
+    { text: "إدارة نماذج الدوام", icon: <EventNoteIcon />, link: "/work-schedule" },
+    { text: "طلبات الاستئذان", icon: <RequestPageIcon />, link: "/leave-requests" }, // عنصر جديد
   ];
 
   return (
