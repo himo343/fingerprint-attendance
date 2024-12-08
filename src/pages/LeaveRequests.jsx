@@ -9,7 +9,7 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Button,
+ // Button,
   Snackbar,
   IconButton,
   CircularProgress,
@@ -132,7 +132,7 @@ const LeaveRequests = () => {
                     التاريخ
                   </TableCell>
                   <TableCell sx={{ color: "white", fontWeight: "bold" }}>
-                    السبب
+                    نوع الاجازه
                   </TableCell>
                   <TableCell sx={{ color: "white", fontWeight: "bold" }}>
                     الحالة

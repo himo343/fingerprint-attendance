@@ -5,14 +5,39 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  .sidebar a:hover {
-    background: #3A6D8C;
-    color: white;
-  }
-  
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+.sidebar {
+  position: fixed;
+  right: 0; /* لجعل القائمة على اليمين */
+  top: 0;
+  width: 250px; /* عرض القائمة */
+  height: 100vh; /* جعل القائمة تغطي الشاشة بالكامل */
+  background: linear-gradient(145deg, #001F3F, #3A6D8C);
+  color: white;
+  padding: 20px;
+  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+}
+
+.sidebar a {
+  color: #EADBB1;
+  text-decoration: none;
+  display: block;
+  padding: 10px 15px;
+  border-radius: 8px;
+  transition: background 0.3s, color 0.3s;
+}
+
+.sidebar a:hover {
+  background: #3A6D8C;
+  color: white;
+}
+
+.main-content {
+  margin-right: 250px; /* تعويض عرض القائمة */
+  padding: 20px;
+  background-color: #f9f9f9; /* لون خلفية للمحتوى */
+  min-height: 100vh; /* لضمان الامتداد العمودي للمحتوى */
+  box-sizing: border-box; /* منع تجاوز الحدود */
 }

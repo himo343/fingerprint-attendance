@@ -1,18 +1,16 @@
 import React, { useState } from "react";
 import {
   Box,
-  Button,
-  TextField,
+  IconButton,
   Typography,
   Paper,
   Grid,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
+  TextField,
+  Snackbar,
+  Alert,
+  Button,
 } from "@mui/material";
+import RefreshIcon from "@mui/icons-material/Refresh";
 import { MapContainer, TileLayer, Marker, Circle, useMapEvents } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 
@@ -27,22 +25,29 @@ const Locations = () => {
     radius: 1000, // النطاق الافتراضي
   });
 
+  const [openSnackbar, setOpenSnackbar] = useState(false); // حالة لفتح الإشعار
+  const [snackbarMessage, setSnackbarMessage] = useState(""); // الرسالة التي ستظهر في الإشعار
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    // تحويل القيمة إلى عدد فقط إذا كانت النطاق
+    const newValue = name === "radius" ? parseInt(value) : value;
+    setFormData({ ...formData, [name]: newValue });
   };
 
   const handleAddLocation = () => {
+    // تحقق من صحة الإحداثيات والنطاق
     if (
       formData.name &&
       formData.address &&
       formData.city &&
-      formData.latitude &&
-      formData.longitude &&
-      formData.radius
+      !isNaN(formData.latitude) && formData.latitude !== 0 &&
+      !isNaN(formData.longitude) && formData.longitude !== 0
     ) {
+      const radiusValue = isNaN(formData.radius) || formData.radius <= 0 ? 1000 : formData.radius; // تعيين قيمة افتراضية للنطاق
       const newLocation = {
         ...formData,
+        radius: radiusValue, // إضافة النطاق المحدد
         createdAt: new Date().toLocaleString(),
       };
       setLocations([...locations, newLocation]);
@@ -52,21 +57,27 @@ const Locations = () => {
         city: "",
         latitude: 15.5527,
         longitude: 48.5164,
-        radius: 1000,
+        radius: 1000, // إعادة تعيين القيمة الافتراضية للنطاق
       });
     } else {
-      alert("يرجى ملء جميع الحقول.");
+      // إذا لم يتم تحديد النطاق بشكل صحيح، إظهار إشعار
+      setSnackbarMessage("يجب تحديد قيمة للنطاق (radius) بشكل صحيح.");
+      setOpenSnackbar(true);
     }
   };
 
   const LocationMarker = () => {
     useMapEvents({
       click(e) {
-        setFormData({
-          ...formData,
-          latitude: e.latlng.lat,
-          longitude: e.latlng.lng,
-        });
+        const { lat, lng } = e.latlng;
+        // التحقق من صحة الإحداثيات قبل التحديث
+        if (!isNaN(lat) && !isNaN(lng)) {
+          setFormData({
+            ...formData,
+            latitude: lat,
+            longitude: lng,
+          });
+        }
       },
     });
 
@@ -75,12 +86,39 @@ const Locations = () => {
     );
   };
 
+  const handleCloseSnackbar = () => {
+    setOpenSnackbar(false);
+  };
+
+  // دالة لتحديث القائمة
+  const handleRefreshLocations = () => {
+    // محاكاة عملية التحديث
+    setLocations([...locations]); // يمكن استبدال هذه الوظيفة بجلب بيانات جديدة إذا لزم الأمر
+  };
+
   return (
     <Box sx={{ padding: "20px", background: "#F7F9FC", minHeight: "100vh" }}>
       <Typography variant="h4" gutterBottom sx={{ color: "#001F3F", fontWeight: "bold" }}>
         إدارة المواقع
       </Typography>
 
+      {/* زر التحديث كأيقونة */}
+      <IconButton
+        color="primary"
+        sx={{
+          position: "absolute",
+          top: "20px",
+          right: "20px",
+          backgroundColor: "#fff",
+          boxShadow: 2,
+          borderRadius: "50%",
+        }}
+        onClick={handleRefreshLocations}
+      >
+        <RefreshIcon />
+      </IconButton>
+
+      {/* إضافة جدول عرض المواقع */}
       <Paper elevation={3} sx={{ padding: "20px", borderRadius: "16px", marginBottom: "20px" }}>
         <Typography variant="h6" gutterBottom sx={{ color: "#001F3F", marginBottom: "10px" }}>
           إضافة موقع جديد
@@ -145,7 +183,7 @@ const Locations = () => {
             <LocationMarker />
             <Circle
               center={[formData.latitude, formData.longitude]}
-              radius={parseInt(formData.radius)}
+              radius={parseInt(formData.radius) || 1000} // إذا كانت القيمة فارغة أو غير صحيحة، استخدام النطاق الافتراضي
               pathOptions={{ fillColor: "blue", color: "#001F3F" }}
             />
           </MapContainer>
@@ -161,45 +199,64 @@ const Locations = () => {
         </Button>
       </Paper>
 
+      <Typography variant="h6" gutterBottom sx={{ color: "#001F3F", marginBottom: "10px" }}>
+        المواقع المسجلة
+      </Typography>
+
+      {/* عرض بيانات المواقع المسجلة في جدول */}
       <Paper elevation={3} sx={{ padding: "20px", borderRadius: "16px" }}>
-        <Typography variant="h6" gutterBottom sx={{ color: "#001F3F", marginBottom: "10px" }}>
-          قائمة المواقع
-        </Typography>
-        {locations.length > 0 ? (
-          <TableContainer>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell sx={{ fontWeight: "bold", color: "#001F3F" }}>اسم الموقع</TableCell>
-                  <TableCell sx={{ fontWeight: "bold", color: "#001F3F" }}>العنوان</TableCell>
-                  <TableCell sx={{ fontWeight: "bold", color: "#001F3F" }}>المدينة</TableCell>
-                  <TableCell sx={{ fontWeight: "bold", color: "#001F3F" }}>خطوط العرض</TableCell>
-                  <TableCell sx={{ fontWeight: "bold", color: "#001F3F" }}>خطوط الطول</TableCell>
-                  <TableCell sx={{ fontWeight: "bold", color: "#001F3F" }}>النطاق</TableCell>
-                  <TableCell sx={{ fontWeight: "bold", color: "#001F3F" }}>تاريخ الإضافة</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {locations.map((location, index) => (
-                  <TableRow key={index}>
-                    <TableCell>{location.name}</TableCell>
-                    <TableCell>{location.address}</TableCell>
-                    <TableCell>{location.city}</TableCell>
-                    <TableCell>{location.latitude}</TableCell>
-                    <TableCell>{location.longitude}</TableCell>
-                    <TableCell>{location.radius}</TableCell>
-                    <TableCell>{location.createdAt}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        ) : (
-          <Typography variant="body1" sx={{ color: "#6A6A6A" }}>
-            لم يتم إضافة مواقع بعد.
-          </Typography>
-        )}
+        <Grid container spacing={2}>
+          {locations.length > 0 ? (
+            <Grid item xs={12}>
+              <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                <thead>
+                  <tr>
+                    <th style={{ padding: "10px", border: "1px solid #ddd" }}>اسم الموقع</th>
+                    <th style={{ padding: "10px", border: "1px solid #ddd" }}>العنوان</th>
+                    <th style={{ padding: "10px", border: "1px solid #ddd" }}>المدينة</th>
+                    <th style={{ padding: "10px", border: "1px solid #ddd" }}>الإحداثيات</th>
+                    <th style={{ padding: "10px", border: "1px solid #ddd" }}>النطاق</th>
+                    <th style={{ padding: "10px", border: "1px solid #ddd" }}>تاريخ الإنشاء</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {locations.map((location, index) => (
+                    <tr key={index}>
+                      <td style={{ padding: "10px", border: "1px solid #ddd" }}>{location.name}</td>
+                      <td style={{ padding: "10px", border: "1px solid #ddd" }}>{location.address}</td>
+                      <td style={{ padding: "10px", border: "1px solid #ddd" }}>{location.city}</td>
+                      <td style={{ padding: "10px", border: "1px solid #ddd" }}>
+                        {location.latitude}, {location.longitude}
+                      </td>
+                      <td style={{ padding: "10px", border: "1px solid #ddd" }}>
+                        {location.radius} 
+                      </td>
+                      <td style={{ padding: "10px", border: "1px solid #ddd" }}>{location.createdAt}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </Grid>
+          ) : (
+            <Grid item xs={12}>
+              <Typography variant="body1" sx={{ textAlign: "center", color: "#999" }}>
+                لا توجد مواقع مسجلة بعد.
+              </Typography>
+            </Grid>
+          )}
+        </Grid>
       </Paper>
+
+      {/* Snackbar لعرض الرسائل */}
+      <Snackbar
+        open={openSnackbar}
+        autoHideDuration={3000}
+        onClose={handleCloseSnackbar}
+      >
+        <Alert onClose={handleCloseSnackbar} severity="error" sx={{ width: "100%" }}>
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

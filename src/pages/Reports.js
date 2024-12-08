@@ -12,9 +12,11 @@ import {
   TextField,
   Button,
   Grid,
+  IconButton,
 } from "@mui/material";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
+import RefreshIcon from "@mui/icons-material/Refresh"; // استيراد الأيقونة
 
 function Reports() {
   const initialReports = [
@@ -26,7 +28,7 @@ function Reports() {
       checkInTime: "08:00",
       checkOutTime: "16:00",
       workHours: 8,
-      salary: "5000 ريال",
+      salary: "4000 ريال",
       location: "مكتب صنعاء",
     },
     {
@@ -65,7 +67,12 @@ function Reports() {
 
   const handleDownloadPDF = () => {
     const doc = new jsPDF();
+
+    doc.setFont("times", "normal");  // تأكد من استخدام خط يدعم اللغة العربية
+    doc.setFontSize(12);
+
     doc.text("تقارير الحضور", 14, 20);
+
     doc.autoTable({
       head: [
         [
@@ -89,8 +96,18 @@ function Reports() {
         report.salary,
         report.location,
       ]),
+      theme: "grid",
     });
+
     doc.save("attendance-reports.pdf");
+  };
+
+  const handleResetFilters = () => {
+    setSearchQuery("");  // إعادة تعيين الفلاتر
+  };
+
+  const handleRefresh = () => {
+    setReports(initialReports); // تحديث البيانات (أو يمكن جلب البيانات من API)
   };
 
   return (
@@ -114,7 +131,7 @@ function Reports() {
         التقارير
       </Typography>
 
-      {/* شريط البحث */}
+      {/* شريط البحث وزر التنزيل */}
       <Grid container spacing={2} mb={3}>
         <Grid item xs={12} sm={8}>
           <TextField
@@ -125,19 +142,46 @@ function Reports() {
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </Grid>
-        <Grid item xs={12} sm={4}>
-          <Button
-            variant="contained"
-            fullWidth
-            sx={{
-              background: "#3A6D8C",
-              color: "white",
-              "&:hover": { background: "#2A5C7A" },
-            }}
-            onClick={handleDownloadPDF}
-          >
-            تحميل كملف PDF
-          </Button>
+        <Grid item xs={12} sm={4} container spacing={2}>
+          <Grid item xs={4}>
+            <Button
+              variant="contained"
+              fullWidth
+              sx={{
+                background: "#3A6D8C",
+                color: "white",
+                "&:hover": { background: "#2A5C7A" },
+              }}
+              onClick={handleDownloadPDF}
+            >
+              تحميل كملف PDF
+            </Button>
+          </Grid>
+          <Grid item xs={4}>
+            <Button
+              variant="outlined"
+              fullWidth
+              sx={{
+                color: "#3A6D8C",
+                borderColor: "#3A6D8C",
+                "&:hover": { borderColor: "#2A5C7A" },
+              }}
+              onClick={handleResetFilters}
+            >
+              إعادة تعيين الفلاتر
+            </Button>
+          </Grid>
+          <Grid item xs={4}>
+            <IconButton
+              onClick={handleRefresh} // زر التحديث بدون أي لون
+              sx={{
+                width: "100%",
+                height: "100%",
+              }}
+            >
+              <RefreshIcon /> {/* أيقونة التحديث */}
+            </IconButton>
+          </Grid>
         </Grid>
       </Grid>
 

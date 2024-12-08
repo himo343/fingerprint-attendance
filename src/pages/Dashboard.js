@@ -1,11 +1,20 @@
-import React from "react";
+import React, { useState } from "react";
 import { Grid, Card, CardContent, Typography, Box, IconButton } from "@mui/material";
 import RefreshIcon from "@mui/icons-material/Refresh";
-import { useData } from "../context/DataContext"; // استيراد الـ Context
 import Chart from "react-apexcharts";
 
+// قاعدة بيانات وهمية للعرض
+const mockData = {
+  totalEmployees: 150,
+  attendingAtCompany: 120,
+  absenceWithoutPermission: 15,
+  onExternalMissions: 10,
+  onLeave: 5,
+  weeklyRest: 20,
+};
+
 const Dashboard = () => {
-  const { data, updateData } = useData(); // الحصول على البيانات ودالة التحديث من الـ Context
+  const [data, setData] = useState(mockData); // استخدام البيانات الوهمية
 
   const donutChartData = {
     series: [80, 10, 10],
@@ -66,6 +75,11 @@ const Dashboard = () => {
     },
   };
 
+  // دالة تحديث البيانات (في حال أردت تحديث البيانات)
+  const updateData = () => {
+    setData(mockData); // تحديث البيانات الوهمية
+  };
+
   return (
     <Box
       p={3}
@@ -107,6 +121,7 @@ const Dashboard = () => {
 
       {/* المؤشرات الرئيسية */}
       <Grid container spacing={3}>
+        {/* كروت البيانات الجديدة */}
         <Grid item xs={12} md={3}>
           <Card
             sx={{
@@ -117,8 +132,8 @@ const Dashboard = () => {
             }}
           >
             <CardContent>
-              <Typography variant="h6">إجمالي الموظفين</Typography>
-              <Typography variant="h4">{data.employees}</Typography>
+              <Typography variant="h6">إجمالي الموظفين المسجلين</Typography>
+              <Typography variant="h4">{data.totalEmployees}</Typography>
             </CardContent>
           </Card>
         </Grid>
@@ -132,8 +147,8 @@ const Dashboard = () => {
             }}
           >
             <CardContent>
-              <Typography variant="h6">حضور اليوم</Typography>
-              <Typography variant="h4">{data.attendance}</Typography>
+              <Typography variant="h6">حضور بمقر الشركة</Typography>
+              <Typography variant="h4">{data.attendingAtCompany}</Typography>
             </CardContent>
           </Card>
         </Grid>
@@ -147,8 +162,53 @@ const Dashboard = () => {
             }}
           >
             <CardContent>
-              <Typography variant="h6">غيابات اليوم</Typography>
-              <Typography variant="h4">{data.absences}</Typography>
+              <Typography variant="h6">غياب بدون إذن</Typography>
+              <Typography variant="h4">{data.absenceWithoutPermission}</Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12} md={3}>
+          <Card
+            sx={{
+              background: "#66BB6A",
+              color: "white",
+              borderRadius: "12px",
+              boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+            }}
+          >
+            <CardContent>
+              <Typography variant="h6">في مأموريات خارجيه</Typography>
+              <Typography variant="h4">{data.onExternalMissions}</Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12} md={3}>
+          <Card
+            sx={{
+              background: "#42A5F5",
+              color: "white",
+              borderRadius: "12px",
+              boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+            }}
+          >
+            <CardContent>
+              <Typography variant="h6">في إجازة</Typography>
+              <Typography variant="h4">{data.onLeave}</Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12} md={3}>
+          <Card
+            sx={{
+              background: "#FFA726",
+              color: "white",
+              borderRadius: "12px",
+              boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+            }}
+          >
+            <CardContent>
+              <Typography variant="h6">الراحة الأسبوعية</Typography>
+              <Typography variant="h4">{data.weeklyRest}</Typography>
             </CardContent>
           </Card>
         </Grid>

@@ -21,6 +21,7 @@ import {
 } from "@mui/material";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import DownloadIcon from "@mui/icons-material/Download";
+import RefreshIcon from "@mui/icons-material/Refresh"; // إضافة أيقونة التحديث
 
 function Attendance() {
   const [attendanceData, setAttendanceData] = useState([
@@ -58,15 +59,29 @@ function Attendance() {
 
   const handleCloseSnackbar = () => setSnackbar({ open: false, message: "" });
 
+  const handleRefresh = () => {
+    // هنا يمكنك إضافة عملية التحديث (مثل إعادة تحميل البيانات أو الصفحة)
+    window.location.reload(); // تحديث الصفحة
+  };
+
   return (
     <Box p={3} sx={{ background: "#F7F9FC", minHeight: "100vh", borderRadius: "16px" }}>
-      <Typography
-        variant="h4"
-        gutterBottom
-        sx={{ color: "#001F3F", fontWeight: "bold", marginBottom: "20px" }}
-      >
-        إدارة الحضور
-      </Typography>
+      <Grid container justifyContent="space-between" alignItems="center" sx={{ marginBottom: "20px" }}>
+        <Grid item>
+          <Typography
+            variant="h4"
+            gutterBottom
+            sx={{ color: "#001F3F", fontWeight: "bold" }}
+          >
+            إدارة الحضور
+          </Typography>
+        </Grid>
+        <Grid item>
+          <IconButton onClick={handleRefresh} color="primary">
+            <RefreshIcon />
+          </IconButton>
+        </Grid>
+      </Grid>
 
       {/* البحث والتصفية */}
       <Paper
