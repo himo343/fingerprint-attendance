@@ -21,6 +21,7 @@ import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import RefreshIcon from "@mui/icons-material/Refresh"; // استيراد الأيقونة
+import axios from "axios";
 
 // ألوان المشروع
 const colors = {
@@ -31,14 +32,16 @@ const colors = {
 
 const EmployeeManagement = () => {
   const [employeeData, setEmployeeData] = useState({
-    fullName: "",
-    phoneNumber: "",
-    department: "",
-    birthDate: "",
-    baseSalary: "",
-    email: "",
+    fullName: "mazen ebrahim hhhkkk ali",
+        phoneNumber: "777739701",
+        department: "it",
+        birthDate: "2024-01-01",
+        baseSalary: "25000",
+        email: "mazenebrahim484452001@gmail.com",
     location: "",
     workSchedule: "",
+    shiftId: "",
+    locationId: "",
   });
 
   const [employees, setEmployees] = useState([]);
@@ -47,6 +50,8 @@ const EmployeeManagement = () => {
   const [snackbar, setSnackbar] = useState({ open: false, message: "" });
   const [editMode, setEditMode] = useState(false);
   const [selectedEmployeeIndex, setSelectedEmployeeIndex] = useState(null);
+
+  const API_URL = "https://shrouded-harbor-25880-c6a9ab9411a9.herokuapp.com/api/employees"; 
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -62,8 +67,8 @@ const EmployeeManagement = () => {
       return false;
     }
 
-    // التحقق من رقم الهاتف (10 أرقام)
-    const phoneRegex = /^[0-8]{9}$/;
+    // التحقق من رقم الهاتف (9 أرقام)
+    const phoneRegex = /^[0-9]{9}$/;
     if (!phoneRegex.test(phoneNumber)) {
       setSnackbar({ open: true, message: "رقم الهاتف يجب أن يكون مكونًا من 9 أرقام!" });
       return false;
@@ -93,33 +98,50 @@ const EmployeeManagement = () => {
     return true;
   };
 
-  const handleSaveEmployee = (e) => {
+  const handleSaveEmployee = async (e) => {
     e.preventDefault();
 
     if (!validateInputs()) return;
 
-    if (editMode) {
-      const updatedEmployees = [...employees];
-      updatedEmployees[selectedEmployeeIndex] = employeeData;
-      setEmployees(updatedEmployees);
-      setSnackbar({ open: true, message: "تم تعديل بيانات الموظف بنجاح!" });
-    } else {
-      setEmployees([...employees, employeeData]);
-      setSnackbar({ open: true, message: "تم إضافة الموظف بنجاح!" });
-    }
+    try {
+      const response = await axios.post(API_URL, {
+        fullname: employeeData.fullName,
+        email: employeeData.email,
+        phone: employeeData.phoneNumber,
+        department: employeeData.department,
+        dateofbirth: employeeData.birthDate,
+        salary: employeeData.baseSalary,
+        Shift_Id: employeeData.shiftId,
+        Location_Id: employeeData.locationId,
+      });
 
-    setEmployeeData({
-      fullName: "",
-      phoneNumber: "",
-      department: "",
-      birthDate: "",
-      baseSalary: "",
-      email: "",
-      location: "",
-      workSchedule: "",
-    });
-    setEditMode(false);
-    setSelectedEmployeeIndex(null);
+      if (editMode) {
+        const updatedEmployees = [...employees];
+        updatedEmployees[selectedEmployeeIndex] = response.data;
+        setEmployees(updatedEmployees);
+        setSnackbar({ open: true, message: "تم تعديل بيانات الموظف بنجاح!" });
+      } else {
+        setEmployees([...employees, response.data]);
+        setSnackbar({ open: true, message: "تم إضافة الموظف بنجاح!" });
+      }
+
+      setEmployeeData({
+        fullName: "mazen ebrahim hhhkkk ali",
+        phoneNumber: "777739701",
+        department: "it",
+        birthDate: "2024-01-01",
+        baseSalary: "25000",
+        email: "mazenebrahim484452001@gmail.com",
+        location: "",
+        workSchedule: "",
+        shiftId: "",
+        locationId: "",
+      });
+      setEditMode(false);
+      setSelectedEmployeeIndex(null);
+    } catch (error) {
+      setSnackbar({ open: true, message: `خطأ: ${error.response?.data || error.message}` });
+    }
   };
 
   const handleEditEmployee = (index) => {
@@ -159,7 +181,8 @@ const EmployeeManagement = () => {
         </Typography>
         <form onSubmit={handleSaveEmployee}>
           <Grid container spacing={3}>
-            <Grid item xs={12} sm={6}>
+            {/* حقول الإدخال */}
+            <Grid item xs={10} sm={5}>
               <TextField
                 label="اسم الموظف الرباعي"
                 name="fullName"
@@ -170,7 +193,7 @@ const EmployeeManagement = () => {
                 onChange={handleInputChange}
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={10} sm={5}>
               <TextField
                 label="رقم الهاتف"
                 name="phoneNumber"
@@ -181,7 +204,7 @@ const EmployeeManagement = () => {
                 onChange={handleInputChange}
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={10} sm={5}>
               <TextField
                 label="القسم"
                 name="department"
@@ -191,7 +214,7 @@ const EmployeeManagement = () => {
                 onChange={handleInputChange}
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={10} sm={5}>
               <TextField
                 label="تاريخ الميلاد"
                 name="birthDate"
@@ -203,7 +226,7 @@ const EmployeeManagement = () => {
                 onChange={handleInputChange}
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={10} sm={5}>
               <TextField
                 label="الراتب الأساسي"
                 name="baseSalary"
@@ -214,7 +237,7 @@ const EmployeeManagement = () => {
                 onChange={handleInputChange}
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={10} sm={5}>
               <TextField
                 label="البريد الإلكتروني"
                 name="email"
@@ -224,7 +247,7 @@ const EmployeeManagement = () => {
                 onChange={handleInputChange}
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={10} sm={5}>
               <Select
                 fullWidth
                 name="location"
@@ -233,7 +256,7 @@ const EmployeeManagement = () => {
                 displayEmpty
               >
                 <MenuItem value="" disabled>
-                  اختر الفرع
+                اختر الموقع
                 </MenuItem>
                 {locations.map((location, index) => (
                   <MenuItem key={index} value={location}>
@@ -242,7 +265,7 @@ const EmployeeManagement = () => {
                 ))}
               </Select>
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={10} sm={5}>
               <Select
                 fullWidth
                 name="workSchedule"
@@ -251,7 +274,7 @@ const EmployeeManagement = () => {
                 displayEmpty
               >
                 <MenuItem value="" disabled>
-                  اختر الجدول الزمني
+                  اختر نموذج دوام
                 </MenuItem>
                 {workSchedules.map((schedule, index) => (
                   <MenuItem key={index} value={schedule}>
@@ -260,7 +283,7 @@ const EmployeeManagement = () => {
                 ))}
               </Select>
             </Grid>
-            <Grid item xs={12}>
+            <Grid item xs={10}>
               <Button
                 type="submit"
                 variant="contained"

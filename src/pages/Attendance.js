@@ -27,6 +27,7 @@ function Attendance() {
   const [attendanceData, setAttendanceData] = useState([
     { id: 1, employee: "أحمد علي", date: "2024-11-15", status: "حاضر" },
     { id: 2, employee: "محمد يوسف", date: "2024-11-15", status: "غائب" },
+    { id: 3, employee: "سعاد خالد", date: "2024-11-15", status: "حاضر" },
   ]);
 
   const [searchQuery, setSearchQuery] = useState("");

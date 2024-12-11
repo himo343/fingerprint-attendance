@@ -8,7 +8,7 @@ const Login = ({ setIsLoggedIn }) => {
   const navigate = useNavigate();
 
   const handleLogin = () => {
-    if (username === "admin" && password === "1234") {
+    if (username === "himo" && password === "1234") {
       setIsLoggedIn(true); // تحديث حالة تسجيل الدخول
       localStorage.setItem("isLoggedIn", "true"); // تخزين حالة تسجيل الدخول في localStorage
       navigate("/dashboard"); // الانتقال إلى صفحة لوحة التحكم

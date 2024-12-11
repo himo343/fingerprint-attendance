@@ -34,7 +34,7 @@ const Dashboard = () => {
       chart: { type: "bar", height: 200 },
       colors: ["#3A6D8C"],
       xaxis: {
-        categories: ["مكتب صنعاء", "مكتب عدن", "مكتب تعز"],
+        categories: ["الفرع الرئيسي", "الفرع1", "الفرع2"],
         title: { text: "الموقع" },
       },
       yaxis: { title: { text: "عدد الموظفين" } },
@@ -67,7 +67,7 @@ const Dashboard = () => {
       chart: { type: "area", height: 200 },
       colors: ["#6A9AB0"],
       xaxis: {
-        categories: ["مكتب صنعاء", "مكتب عدن", "مكتب تعز"],
+        categories: ["الفرع الرئيسي", "الفرع1", "الفرع2"],
         title: { text: "الموقع" },
       },
       yaxis: { title: { text: "الرواتب (ريال)" } },
@@ -177,7 +177,7 @@ const Dashboard = () => {
             }}
           >
             <CardContent>
-              <Typography variant="h6">في مأموريات خارجيه</Typography>
+              <Typography variant="h6"> مأموريات خارجيه</Typography>
               <Typography variant="h4">{data.onExternalMissions}</Typography>
             </CardContent>
           </Card>
@@ -250,7 +250,7 @@ const Dashboard = () => {
           <Card sx={{ borderRadius: "16px" }}>
             <CardContent>
               <Typography variant="h6" gutterBottom>
-                تحليل الرواتب حسب الموقع
+                تحليل الرواتب لكل موقع
               </Typography>
               <Chart options={areaChartData.options} series={areaChartData.series} type="area" />
             </CardContent>

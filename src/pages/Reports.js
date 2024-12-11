@@ -29,7 +29,7 @@ function Reports() {
       checkOutTime: "16:00",
       workHours: 8,
       salary: "4000 ريال",
-      location: "مكتب صنعاء",
+      location: "الفرع الرئيسي",
     },
     {
       id: 2,
@@ -40,7 +40,7 @@ function Reports() {
       checkOutTime: "17:00",
       workHours: 7,
       salary: "4800 ريال",
-      location: "مكتب عدن",
+      location: "الفرع الرئيسي",
     },
     {
       id: 3,
@@ -51,7 +51,7 @@ function Reports() {
       checkOutTime: "15:30",
       workHours: 7,
       salary: "4900 ريال",
-      location: "مكتب تعز",
+      location: "الفرع الرئيسي",
     },
   ];
 
