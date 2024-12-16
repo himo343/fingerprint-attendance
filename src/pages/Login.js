@@ -1,6 +1,14 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Box, Button, TextField, Typography, Paper } from "@mui/material";
+import {
+  Box,
+  Button,
+  TextField,
+  Typography,
+  Paper,
+  Container,
+} from "@mui/material";
+import logo from "../assets/logo.png";
 
 const Login = ({ setIsLoggedIn }) => {
   const [username, setUsername] = useState("");
@@ -9,9 +17,9 @@ const Login = ({ setIsLoggedIn }) => {
 
   const handleLogin = () => {
     if (username === "himo" && password === "1234") {
-      setIsLoggedIn(true); // تحديث حالة تسجيل الدخول
-      localStorage.setItem("isLoggedIn", "true"); // تخزين حالة تسجيل الدخول في localStorage
-      navigate("/dashboard"); // الانتقال إلى صفحة لوحة التحكم
+      setIsLoggedIn(true);
+      localStorage.setItem("isLoggedIn", "true");
+      navigate("/dashboard");
     } else {
       alert("بيانات تسجيل الدخول غير صحيحة!");
     }
@@ -23,11 +31,48 @@ const Login = ({ setIsLoggedIn }) => {
       justifyContent="center"
       alignItems="center"
       height="100vh"
-      style={{ backgroundColor: "#001F3F" }}
+      sx={{
+        background: "linear-gradient(135deg, #001F3F, #3A6D8C)",
+        color: "#fff",
+        overflow: "hidden",
+      }}
     >
-      <Paper style={{ padding: "40px", width: "300px" }}>
-        <Typography variant="h5" align="center" gutterBottom>
-          تسجيل الدخول
+      <Paper
+        elevation={6}
+        sx={{
+          padding: "40px",
+          width: "350px",
+          backgroundColor: "rgba(255, 255, 255, 0.9)",
+          borderRadius: "12px",
+        }}
+      >
+        <Box display="flex" justifyContent="center" mb={2}>
+          <img
+            src={logo}
+            alt="Logo"
+            style={{
+              width: "100px",
+              height: "100px",
+              borderRadius: "60%",
+              filter: "drop-shadow(0 5px 15px rgba(0, 0, 0, 0.3))",
+            }}
+          />
+        </Box>
+        <Typography
+          variant="h5"
+          align="center"
+          gutterBottom
+          sx={{ fontWeight: "bold", color: "#001F3F" }}
+        >
+          مرحبًا بك!
+        </Typography>
+        <Typography
+          variant="body1"
+          align="center"
+          gutterBottom
+          sx={{ color: "#555" }}
+        >
+          الرجاء تسجيل الدخول للمتابعة
         </Typography>
         <TextField
           label="اسم المستخدم"
@@ -36,6 +81,7 @@ const Login = ({ setIsLoggedIn }) => {
           margin="normal"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
+          sx={{ backgroundColor: "#f7f7f7", borderRadius: "5px" }}
         />
         <TextField
           label="كلمة المرور"
@@ -45,16 +91,33 @@ const Login = ({ setIsLoggedIn }) => {
           margin="normal"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          sx={{ backgroundColor: "#f7f7f7", borderRadius: "5px" }}
         />
         <Button
           variant="contained"
-          color="primary"
           fullWidth
-          style={{ marginTop: "20px" }}
+          sx={{
+            marginTop: "20px",
+            background: "linear-gradient(135deg, #001F3F, #3A6D8C)",
+            fontWeight: "bold",
+            padding: "10px 0",
+            "&:hover": { background: "#001F3F" },
+          }}
           onClick={handleLogin}
         >
-          دخول
+          تسجيل الدخول
         </Button>
+        <Typography
+          variant="body2"
+          align="center"
+          sx={{
+            marginTop: "20px",
+            color: "#777",
+            "& a": { color: "#3A6D8C", textDecoration: "none" },
+          }}
+        >
+          نسيت كلمة المرور؟ <a href="/reset">إعادة تعيين</a>
+        </Typography>
       </Paper>
     </Box>
   );
