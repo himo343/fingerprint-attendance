@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -11,29 +11,30 @@ import {
   TableRow,
   Paper,
   TextField,
-  Select,
-  MenuItem,
+  FormControlLabel,
+  Checkbox,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
   Grid,
-  Checkbox,
-  FormControlLabel,
-  FormGroup,
+  IconButton,
+  Alert,
 } from "@mui/material";
+import DeleteIcon from "@mui/icons-material/Delete";
+import EditIcon from "@mui/icons-material/Edit";
 
 const WorkSchedule = () => {
   const [schedules, setSchedules] = useState([]);
   const [openDialog, setOpenDialog] = useState(false);
   const [newSchedule, setNewSchedule] = useState({
-    name: "",
-    type: "daily", // daily or weekly
+    shiftname: "",
     startTime: "",
     endTime: "",
-    employees: [],
-    daysOff: [], // New field for days off
+    days: [],
   });
+  const [editingSchedule, setEditingSchedule] = useState(null);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const daysOfWeek = [
     "الأحد",
@@ -45,45 +46,128 @@ const WorkSchedule = () => {
     "السبت",
   ];
 
-  // Sample employees data for demo purposes
-  const employees = [
-    { employeeId: 1, fullName: "أحمد علي" },
-    { employeeId: 2, fullName: "سارة محمد" },
-    { employeeId: 3, fullName: "محمود خالد" },
-  ];
+  // جلب نماذج الدوام من API
+  useEffect(() => {
+    const fetchSchedules = async () => {
+      try {
+        const response = await fetch(
+          "https://shrouded-harbor-25880-c6a9ab9411a9.herokuapp.com/api/shifts"
+        );
+        if (response.ok) {
+          const data = await response.json();
+          setSchedules(data);
+        } else {
+          console.error("Error fetching schedules:", response.status);
+        }
+      } catch (error) {
+        console.error("Error fetching schedules:", error);
+      }
+    };
+    fetchSchedules();
+  }, []);
 
-  // Handle Dialog Open/Close
-  const handleDialogOpen = () => setOpenDialog(true);
+  // فتح نافذة إضافة/تعديل الجدول
+  const handleDialogOpen = (schedule = null) => {
+    if (schedule) {
+      setEditingSchedule(schedule);
+      setNewSchedule({
+        shiftname: schedule.shiftname,
+        startTime: schedule.startTime,
+        endTime: schedule.endTime,
+        days: schedule.days,
+      });
+    } else {
+      setNewSchedule({ shiftname: "", startTime: "", endTime: "", days: [] });
+      setEditingSchedule(null);
+    }
+    setErrorMessage(""); // إعادة تعيين الرسائل عند فتح الحوار
+    setOpenDialog(true);
+  };
+
+  // إغلاق نافذة الحوار
   const handleDialogClose = () => setOpenDialog(false);
 
-  // Handle New Schedule Change
+  // التحقق من صحة البيانات المدخلة
+  const validateSchedule = () => {
+    if (!newSchedule.shiftname || !newSchedule.startTime || !newSchedule.endTime) {
+      setErrorMessage("يرجى ملء جميع الحقول.");
+      return false;
+    }
+    if (newSchedule.days.length === 0) {
+      setErrorMessage("يرجى تحديد أيام العمل.");
+      return false;
+    }
+    return true;
+  };
+
+  // إضافة/تعديل الجدول
+  const handleScheduleSubmit = async () => {
+    if (!validateSchedule()) {
+      return;
+    }
+
+    const url = editingSchedule
+      ? `https://shrouded-harbor-25880-c6a9ab9411a9.herokuapp.com/api/shifts/${editingSchedule._id}`
+      : "https://shrouded-harbor-25880-c6a9ab9411a9.herokuapp.com/api/shifts";
+    const method = editingSchedule ? "PUT" : "POST";
+
+    try {
+      const response = await fetch(url, {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(newSchedule),
+      });
+      if (response.ok) {
+        const updatedSchedules = await response.json();
+        setSchedules(updatedSchedules);
+        handleDialogClose();
+      } else {
+        console.error("Error saving schedule:", response.status);
+        setErrorMessage("حدث خطأ أثناء حفظ الجدول.");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      setErrorMessage("حدث خطأ أثناء الاتصال بالخادم.");
+    }
+  };
+
+  // حذف الجدول
+  const handleDeleteSchedule = async (id) => {
+    try {
+      const response = await fetch(
+        `https://shrouded-harbor-25880-c6a9ab9411a9.herokuapp.com/api/shifts/${id}`,
+        {
+          method: "DELETE",
+        }
+      );
+      if (response.ok) {
+        setSchedules(schedules.filter((schedule) => schedule._id !== id));
+      } else {
+        console.error("Error deleting schedule:", response.status);
+        setErrorMessage("حدث خطأ أثناء حذف الجدول.");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      setErrorMessage("حدث خطأ أثناء الاتصال بالخادم.");
+    }
+  };
+
+  // التعامل مع التغييرات في الحقول
   const handleChange = (e) => {
     const { name, value } = e.target;
     setNewSchedule((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Handle Days Off Change
-  const handleDaysOffChange = (day) => {
+  // التعامل مع تغييرات أيام العمل
+  const handleDaysChange = (day) => {
     setNewSchedule((prev) => {
-      const daysOff = prev.daysOff.includes(day)
-        ? prev.daysOff.filter((d) => d !== day)
-        : [...prev.daysOff, day];
-      return { ...prev, daysOff };
+      const days = prev.days.includes(day)
+        ? prev.days.filter((d) => d !== day)
+        : [...prev.days, day];
+      return { ...prev, days };
     });
-  };
-
-  // Add New Schedule
-  const addSchedule = () => {
-    setSchedules((prev) => [...prev, { ...newSchedule, id: prev.length + 1 }]);
-    setNewSchedule({
-      name: "",
-      type: "daily",
-      startTime: "",
-      endTime: "",
-      employees: [],
-      daysOff: [],
-    });
-    handleDialogClose();
   };
 
   return (
@@ -92,44 +176,49 @@ const WorkSchedule = () => {
         جدولة ساعات العمل
       </Typography>
 
+      {/* الرسالة التحذيرية عند وجود خطأ */}
+      {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
+
       {/* جدول عرض الجداول الحالية */}
       <TableContainer component={Paper} sx={{ marginBottom: "20px" }}>
         <Table>
           <TableHead>
             <TableRow>
               <TableCell>اسم الجدول</TableCell>
-              <TableCell>النوع</TableCell>
               <TableCell>وقت البدء</TableCell>
               <TableCell>وقت الانتهاء</TableCell>
-              <TableCell>الموظفون</TableCell>
-              <TableCell>أيام الإجازة</TableCell>
+              <TableCell>أيام العمل</TableCell>
+              <TableCell>الإجراءات</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {schedules.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} align="center">
+                <TableCell colSpan={5} align="center">
                   لا توجد جداول مضافة
                 </TableCell>
               </TableRow>
             ) : (
               schedules.map((schedule) => (
-                <TableRow key={schedule.id}>
-                  <TableCell>{schedule.name}</TableCell>
-                  <TableCell>{schedule.type === "daily" ? "يومي" : "أسبوعي"}</TableCell>
+                <TableRow key={schedule._id}>
+                  <TableCell>{schedule.shiftname}</TableCell>
                   <TableCell>{schedule.startTime}</TableCell>
                   <TableCell>{schedule.endTime}</TableCell>
+                  <TableCell>{schedule.days.join(", ")}</TableCell>
                   <TableCell>
-                    {schedule.employees && schedule.employees.length > 0
-                      ? schedule.employees
-                          .map((empId) => {
-                            const emp = employees.find((e) => e.employeeId === empId);
-                            return emp ? emp.fullName : "";
-                          })
-                          .join(", ")
-                      : "لا توجد موظفين"}
+                    <IconButton
+                      color="primary"
+                      onClick={() => handleDialogOpen(schedule)}
+                    >
+                      <EditIcon />
+                    </IconButton>
+                    <IconButton
+                      color="error"
+                      onClick={() => handleDeleteSchedule(schedule._id)}
+                    >
+                      <DeleteIcon />
+                    </IconButton>
                   </TableCell>
-                  <TableCell>{schedule.daysOff.join(", ")}</TableCell>
                 </TableRow>
               ))
             )}
@@ -141,39 +230,28 @@ const WorkSchedule = () => {
       <Button
         variant="contained"
         color="primary"
-        onClick={handleDialogOpen}
+        onClick={() => handleDialogOpen()}
         sx={{ borderRadius: "8px" }}
       >
         إضافة جدول جديد
       </Button>
 
-      {/* نافذة إضافة جدول جديد */}
+      {/* نافذة إضافة/تعديل الجدول */}
       <Dialog open={openDialog} onClose={handleDialogClose} fullWidth maxWidth="sm">
-        <DialogTitle>إضافة جدول جديد</DialogTitle>
+        <DialogTitle>{editingSchedule ? "تعديل جدول العمل" : "إضافة جدول جديد"}</DialogTitle>
         <DialogContent>
           <Grid container spacing={2}>
             <Grid item xs={12}>
               <TextField
                 label="اسم الجدول"
-                name="name"
-                value={newSchedule.name}
+                name="shiftname"
+                value={newSchedule.shiftname}
                 onChange={handleChange}
                 fullWidth
                 variant="outlined"
+                error={!newSchedule.shiftname}
+                helperText={!newSchedule.shiftname ? "يرجى إدخال اسم الجدول" : ""}
               />
-            </Grid>
-            <Grid item xs={12}>
-              <Select
-                label="النوع"
-                name="type"
-                value={newSchedule.type}
-                onChange={handleChange}
-                fullWidth
-                variant="outlined"
-              >
-                <MenuItem value="daily">يومي</MenuItem>
-                <MenuItem value="weekly">أسبوعي</MenuItem>
-              </Select>
             </Grid>
             <Grid item xs={6}>
               <TextField
@@ -184,6 +262,9 @@ const WorkSchedule = () => {
                 onChange={handleChange}
                 fullWidth
                 variant="outlined"
+                InputLabelProps={{ shrink: true }}
+                error={!newSchedule.startTime}
+                helperText={!newSchedule.startTime ? "يرجى إدخال وقت البدء" : ""}
               />
             </Grid>
             <Grid item xs={6}>
@@ -195,39 +276,27 @@ const WorkSchedule = () => {
                 onChange={handleChange}
                 fullWidth
                 variant="outlined"
+                InputLabelProps={{ shrink: true }}
+                error={!newSchedule.endTime}
+                helperText={!newSchedule.endTime ? "يرجى إدخال وقت الانتهاء" : ""}
               />
             </Grid>
             <Grid item xs={12}>
-              <TextField
-                label="الموظفون (أدخل الأسماء مفصولة بفواصل)"
-                name="employees"
-                value={newSchedule.employees}
-                onChange={(e) => {
-                  const value = e.target.value.split(",").map((val) => val.trim());
-                  setNewSchedule((prev) => ({ ...prev, employees: value }));
-                }}
-                fullWidth
-                variant="outlined"
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <Typography variant="body1" gutterBottom>
-                أيام الإجازة:
+              <Typography variant="subtitle1" gutterBottom>
+                اختر أيام العمل:
               </Typography>
-              <FormGroup row>
-                {daysOfWeek.map((day) => (
-                  <FormControlLabel
-                    key={day}
-                    control={
-                      <Checkbox
-                        checked={newSchedule.daysOff.includes(day)}
-                        onChange={() => handleDaysOffChange(day)}
-                      />
-                    }
-                    label={day}
-                  />
-                ))}
-              </FormGroup>
+              {daysOfWeek.map((day) => (
+                <FormControlLabel
+                  key={day}
+                  control={
+                    <Checkbox
+                      checked={newSchedule.days.includes(day)}
+                      onChange={() => handleDaysChange(day)}
+                    />
+                  }
+                  label={day}
+                />
+              ))}
             </Grid>
           </Grid>
         </DialogContent>
@@ -235,8 +304,8 @@ const WorkSchedule = () => {
           <Button onClick={handleDialogClose} color="secondary">
             إلغاء
           </Button>
-          <Button onClick={addSchedule} variant="contained" color="primary">
-            إضافة
+          <Button onClick={handleScheduleSubmit} color="primary">
+            {editingSchedule ? "تحديث" : "إضافة"}
           </Button>
         </DialogActions>
       </Dialog>

@@ -9,7 +9,6 @@ import {
   TableContainer,
   TableHead,
   TableRow,
- // Button,
   Snackbar,
   IconButton,
   CircularProgress,
@@ -27,9 +26,12 @@ const LeaveRequests = () => {
     const fetchLeaveRequests = async () => {
       setLoading(true);
       try {
-        const response = await fetch("/api/leaves");
+        const response = await fetch(
+          "https://shrouded-harbor-25880-c6a9ab9411a9.herokuapp.com/api/leavesRequest"
+        );
         const data = await response.json();
-        setLeaveRequests(data);
+        console.log(data); // لعرض البيانات المستلمة في الكونسول
+        setLeaveRequests(data); // تأكد أن البيانات تحتوي على الحقول المطلوبة
       } catch (error) {
         console.error("Error fetching leave requests:", error);
       } finally {
@@ -41,21 +43,31 @@ const LeaveRequests = () => {
   }, []);
 
   // Handle approval/rejection of leave requests
-  const handleAction = async (id, status) => {
+  const handleAction = async (id, adminResponse) => {
     try {
-      const response = await fetch(`/api/leaves/${id}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ status }),
-      });
+      const response = await fetch(
+        "https://shrouded-harbor-25880-c6a9ab9411a9.herokuapp.com/api/leavesRequest/leaverequest_admin",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            adminresponse: adminResponse, // either "Approved" or "Rejected"
+          }),
+        }
+      );
 
       if (response.ok) {
-        setSnackbar({ open: true, message: `تم ${status === "approved" ? "الموافقة على" : "رفض"} الطلب بنجاح` });
+        setSnackbar({
+          open: true,
+          message: `تم ${adminResponse === "Approved" ? "الموافقة على" : "رفض"} الطلب بنجاح`,
+        });
         setLeaveRequests((prev) =>
           prev.map((request) =>
-            request.id === id ? { ...request, status } : request
+            request._id === id
+              ? { ...request, status: adminResponse === "Approved" ? "approved" : "rejected" }
+              : request
           )
         );
       } else {
@@ -144,10 +156,10 @@ const LeaveRequests = () => {
               </TableHead>
               <TableBody>
                 {leaveRequests.map((request) => (
-                  <TableRow key={request.id}>
-                    <TableCell>{request.employeeName}</TableCell>
-                    <TableCell>{request.date}</TableCell>
-                    <TableCell>{request.reason}</TableCell>
+                  <TableRow key={request._id}>
+                    <TableCell>{request.employeeName || "غير متوفر"}</TableCell>
+                    <TableCell>{request.date || "غير متوفر"}</TableCell>
+                    <TableCell>{request.reason || "غير متوفر"}</TableCell>
                     <TableCell>
                       {request.status === "approved" && (
                         <Typography color="green">مقبول</Typography>
@@ -164,13 +176,13 @@ const LeaveRequests = () => {
                         <>
                           <IconButton
                             color="success"
-                            onClick={() => handleAction(request.id, "approved")}
+                            onClick={() => handleAction(request._id, "Approved")}
                           >
                             <CheckCircleIcon />
                           </IconButton>
                           <IconButton
                             color="error"
-                            onClick={() => handleAction(request.id, "rejected")}
+                            onClick={() => handleAction(request._id, "Rejected")}
                           >
                             <CancelIcon />
                           </IconButton>

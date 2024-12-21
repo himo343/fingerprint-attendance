@@ -6,7 +6,6 @@ import {
   TextField,
   Typography,
   Paper,
-  Container,
 } from "@mui/material";
 import logo from "../assets/logo.png";
 
@@ -15,13 +14,33 @@ const Login = ({ setIsLoggedIn }) => {
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
-  const handleLogin = () => {
-    if (username === "himo" && password === "1234") {
-      setIsLoggedIn(true);
-      localStorage.setItem("isLoggedIn", "true");
-      navigate("/dashboard");
-    } else {
-      alert("بيانات تسجيل الدخول غير صحيحة!");
+  const handleLogin = async () => {
+    try {
+      // إرسال طلب تسجيل الدخول
+      const response = await fetch("https://shrouded-harbor-25880-c6a9ab9411a9.herokuapp.com/api/admin/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          Aname: username,
+          password: password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // حفظ التوكن في التخزين المحلي
+        localStorage.setItem("authToken", data.token);
+        setIsLoggedIn(true);
+        navigate("/dashboard");
+      } else {
+        alert("بيانات تسجيل الدخول غير صحيحة!");
+      }
+    } catch (error) {
+      console.error("خطأ أثناء تسجيل الدخول:", error);
+      alert("حدث خطأ أثناء تسجيل الدخول. الرجاء المحاولة مرة أخرى.");
     }
   };
 

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   IconButton,
@@ -13,6 +13,7 @@ import {
 import RefreshIcon from "@mui/icons-material/Refresh";
 import { MapContainer, TileLayer, Marker, Circle, useMapEvents } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
+import axios from "axios";
 
 const Locations = () => {
   const [locations, setLocations] = useState([]);
@@ -24,13 +25,23 @@ const Locations = () => {
     longitude: 48.5164,
     radius: 1000, // النطاق الافتراضي
   });
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
 
-  const [openSnackbar, setOpenSnackbar] = useState(false); // حالة لفتح الإشعار
-  const [snackbarMessage, setSnackbarMessage] = useState(""); // الرسالة التي ستظهر في الإشعار
+  // جلب المواقع عند تحميل الصفحة
+  useEffect(() => {
+    axios.get('https://shrouded-harbor-25880-c6a9ab9411a9.herokuapp.com/api/locations')
+      .then(response => {
+        setLocations(response.data);
+      })
+      .catch(error => {
+        setSnackbarMessage("حدث خطأ أثناء جلب المواقع.");
+        setOpenSnackbar(true);
+      });
+  }, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    // تحويل القيمة إلى عدد فقط إذا كانت النطاق
     const newValue = name === "radius" ? parseInt(value) : value;
     setFormData({ ...formData, [name]: newValue });
   };
@@ -44,33 +55,62 @@ const Locations = () => {
       !isNaN(formData.latitude) && formData.latitude !== 0 &&
       !isNaN(formData.longitude) && formData.longitude !== 0
     ) {
-      const radiusValue = isNaN(formData.radius) || formData.radius <= 0 ? 1000 : formData.radius; // تعيين قيمة افتراضية للنطاق
+      const radiusValue = isNaN(formData.radius) || formData.radius <= 0 ? 1000 : formData.radius;
+
       const newLocation = {
-        ...formData,
-        radius: radiusValue, // إضافة النطاق المحدد
+        name: formData.name,
+        address: formData.address,
+        city: formData.city,
+        latitude: formData.latitude,
+        longitude: formData.longitude,
+        radius: radiusValue,
         createdAt: new Date().toLocaleString(),
       };
-      setLocations([...locations, newLocation]);
-      setFormData({
-        name: "",
-        address: "",
-        city: "",
-        latitude: 15.5527,
-        longitude: 48.5164,
-        radius: 1000, // إعادة تعيين القيمة الافتراضية للنطاق
-      });
+
+      // إرسال الطلب لإضافة الموقع
+      axios.post('https://shrouded-harbor-25880-c6a9ab9411a9.herokuapp.com/api/locations', newLocation)
+        .then(response => {
+          setLocations([...locations, response.data]);
+          setFormData({
+            name: "",
+            address: "",
+            city: "",
+            latitude: 15.5527,
+            longitude: 48.5164,
+            radius: 1000,
+          });
+          setSnackbarMessage("تم إضافة الموقع بنجاح.");
+          setOpenSnackbar(true);
+        })
+        .catch(error => {
+          console.error(error);
+          setSnackbarMessage("حدث خطأ أثناء إضافة الموقع.");
+          setOpenSnackbar(true);
+        });
     } else {
-      // إذا لم يتم تحديد النطاق بشكل صحيح، إظهار إشعار
-      setSnackbarMessage("يجب تحديد قيمة للنطاق (radius) بشكل صحيح.");
+      setSnackbarMessage("يجب تحديد جميع الحقول بشكل صحيح.");
       setOpenSnackbar(true);
     }
+  };
+
+  const handleDeleteLocation = (id) => {
+    // إرسال طلب لحذف الموقع
+    axios.delete(`https://shrouded-harbor-25880-c6a9ab9411a9.herokuapp.com/api/locations/${id}`)
+      .then(response => {
+        setLocations(locations.filter(location => location._id !== id));
+        setSnackbarMessage("تم حذف الموقع بنجاح.");
+        setOpenSnackbar(true);
+      })
+      .catch(error => {
+        setSnackbarMessage("حدث خطأ أثناء حذف الموقع.");
+        setOpenSnackbar(true);
+      });
   };
 
   const LocationMarker = () => {
     useMapEvents({
       click(e) {
         const { lat, lng } = e.latlng;
-        // التحقق من صحة الإحداثيات قبل التحديث
         if (!isNaN(lat) && !isNaN(lng)) {
           setFormData({
             ...formData,
@@ -81,19 +121,23 @@ const Locations = () => {
       },
     });
 
-    return (
-      <Marker position={[formData.latitude, formData.longitude]} />
-    );
+    return <Marker position={[formData.latitude, formData.longitude]} />;
   };
 
   const handleCloseSnackbar = () => {
     setOpenSnackbar(false);
   };
 
-  // دالة لتحديث القائمة
   const handleRefreshLocations = () => {
-    // محاكاة عملية التحديث
-    setLocations([...locations]); // يمكن استبدال هذه الوظيفة بجلب بيانات جديدة إذا لزم الأمر
+    // جلب البيانات من جديد من API
+    axios.get('https://shrouded-harbor-25880-c6a9ab9411a9.herokuapp.com/api/locations')
+      .then(response => {
+        setLocations(response.data);
+      })
+      .catch(error => {
+        setSnackbarMessage("حدث خطأ أثناء التحديث.");
+        setOpenSnackbar(true);
+      });
   };
 
   return (
@@ -102,7 +146,6 @@ const Locations = () => {
         إدارة المواقع
       </Typography>
 
-      {/* زر التحديث كأيقونة */}
       <IconButton
         color="primary"
         sx={{
@@ -118,7 +161,7 @@ const Locations = () => {
         <RefreshIcon />
       </IconButton>
 
-      {/* إضافة جدول عرض المواقع */}
+      {/* إضافة موقع جديد */}
       <Paper elevation={3} sx={{ padding: "20px", borderRadius: "16px", marginBottom: "20px" }}>
         <Typography variant="h6" gutterBottom sx={{ color: "#001F3F", marginBottom: "10px" }}>
           إضافة موقع جديد
@@ -183,7 +226,7 @@ const Locations = () => {
             <LocationMarker />
             <Circle
               center={[formData.latitude, formData.longitude]}
-              radius={parseInt(formData.radius) || 1000} // إذا كانت القيمة فارغة أو غير صحيحة، استخدام النطاق الافتراضي
+              radius={parseInt(formData.radius) || 1000}
               pathOptions={{ fillColor: "blue", color: "#001F3F" }}
             />
           </MapContainer>
@@ -202,36 +245,45 @@ const Locations = () => {
       <Typography variant="h6" gutterBottom sx={{ color: "#001F3F", marginBottom: "10px" }}>
         المواقع المسجلة
       </Typography>
-
-      {/* عرض بيانات المواقع المسجلة في جدول */}
+      {/* عرض قائمة المواقع */}
       <Paper elevation={3} sx={{ padding: "20px", borderRadius: "16px" }}>
-        <Grid container spacing={2}>
+        <Grid container>
           {locations.length > 0 ? (
             <Grid item xs={12}>
               <table style={{ width: "100%", borderCollapse: "collapse" }}>
                 <thead>
                   <tr>
-                    <th style={{ padding: "10px", border: "1px solid #ddd" }}>اسم الموقع</th>
+                    <th style={{ padding: "10px", border: "1px solid #ddd" }}>الاسم</th>
                     <th style={{ padding: "10px", border: "1px solid #ddd" }}>العنوان</th>
                     <th style={{ padding: "10px", border: "1px solid #ddd" }}>المدينة</th>
-                    <th style={{ padding: "10px", border: "1px solid #ddd" }}>الإحداثيات</th>
-                    <th style={{ padding: "10px", border: "1px solid #ddd" }}>النطاق</th>
-                    <th style={{ padding: "10px", border: "1px solid #ddd" }}>تاريخ الإنشاء</th>
+                    <th style={{ padding: "10px", border: "1px solid #ddd" }}>نطاق</th>
+                    <th style={{ padding: "10px", border: "1px solid #ddd" }}>الإجراءات</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {locations.map((location, index) => (
-                    <tr key={index}>
-                      <td style={{ padding: "10px", border: "1px solid #ddd" }}>{location.name}</td>
-                      <td style={{ padding: "10px", border: "1px solid #ddd" }}>{location.address}</td>
-                      <td style={{ padding: "10px", border: "1px solid #ddd" }}>{location.city}</td>
+                  {locations.map((location) => (
+                    <tr key={location._id}>
                       <td style={{ padding: "10px", border: "1px solid #ddd" }}>
-                        {location.latitude}, {location.longitude}
+                        {location.name}
                       </td>
                       <td style={{ padding: "10px", border: "1px solid #ddd" }}>
-                        {location.radius} 
+                        {location.address}
                       </td>
-                      <td style={{ padding: "10px", border: "1px solid #ddd" }}>{location.createdAt}</td>
+                      <td style={{ padding: "10px", border: "1px solid #ddd" }}>
+                        {location.city}
+                      </td>
+                      <td style={{ padding: "10px", border: "1px solid #ddd" }}>
+                        {location.radius} م
+                      </td>
+                      <td style={{ padding: "10px", border: "1px solid #ddd" }}>
+                        <Button
+                          variant="contained"
+                          color="secondary"
+                          onClick={() => handleDeleteLocation(location._id)}
+                        >
+                          حذف
+                        </Button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -239,21 +291,24 @@ const Locations = () => {
             </Grid>
           ) : (
             <Grid item xs={12}>
-              <Typography variant="body1" sx={{ textAlign: "center", color: "#999" }}>
-                لا توجد مواقع مسجلة بعد.
+              <Typography variant="body1" color="textSecondary" sx={{ padding: "10px" }}>
+                لا توجد مواقع مسجلة حالياً.
               </Typography>
             </Grid>
           )}
         </Grid>
       </Paper>
 
-      {/* Snackbar لعرض الرسائل */}
       <Snackbar
         open={openSnackbar}
-        autoHideDuration={3000}
+        autoHideDuration={6000}
         onClose={handleCloseSnackbar}
       >
-        <Alert onClose={handleCloseSnackbar} severity="error" sx={{ width: "100%" }}>
+        <Alert
+          onClose={handleCloseSnackbar}
+          severity={snackbarMessage.includes("نجاح") ? "success" : "error"}
+          sx={{ width: "100%" }}
+        >
           {snackbarMessage}
         </Alert>
       </Snackbar>
