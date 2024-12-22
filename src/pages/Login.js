@@ -127,6 +127,18 @@ const Login = ({ setIsLoggedIn }) => {
           تسجيل الدخول
         </Button>
         <Typography
+  variant="body2"
+  align="center"
+  sx={{
+    marginTop: "20px",
+    color: "#777",
+    "& a": { color: "#3A6D8C", textDecoration: "none" },
+  }}
+>
+  <a href="/change-password">تغيير كلمة المرور</a>
+</Typography>
+
+        <Typography
           variant="body2"
           align="center"
           sx={{

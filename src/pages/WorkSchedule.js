@@ -192,37 +192,39 @@ const WorkSchedule = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {schedules.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={5} align="center">
-                  لا توجد جداول مضافة
-                </TableCell>
-              </TableRow>
-            ) : (
-              schedules.map((schedule) => (
-                <TableRow key={schedule._id}>
-                  <TableCell>{schedule.shiftname}</TableCell>
-                  <TableCell>{schedule.startTime}</TableCell>
-                  <TableCell>{schedule.endTime}</TableCell>
-                  <TableCell>{schedule.days.join(", ")}</TableCell>
-                  <TableCell>
-                    <IconButton
-                      color="primary"
-                      onClick={() => handleDialogOpen(schedule)}
-                    >
-                      <EditIcon />
-                    </IconButton>
-                    <IconButton
-                      color="error"
-                      onClick={() => handleDeleteSchedule(schedule._id)}
-                    >
-                      <DeleteIcon />
-                    </IconButton>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
+  {schedules.length === 0 ? (
+    <TableRow>
+      <TableCell colSpan={5} align="center">
+        لا توجد جداول مضافة
+      </TableCell>
+    </TableRow>
+  ) : (
+    schedules.map((schedule) => (
+      <TableRow key={schedule._id}>
+        <TableCell>{schedule.shiftname}</TableCell>
+        <TableCell>{schedule.startTime}</TableCell>
+        <TableCell>{schedule.endTime}</TableCell>
+        <TableCell>
+          {Array.isArray(schedule.days) ? schedule.days.join(", ") : "غير محدد"}
+        </TableCell>
+        <TableCell>
+          <IconButton
+            color="primary"
+            onClick={() => handleDialogOpen(schedule)}
+          >
+            <EditIcon />
+          </IconButton>
+          <IconButton
+            color="error"
+            onClick={() => handleDeleteSchedule(schedule._id)}
+          >
+            <DeleteIcon />
+          </IconButton>
+        </TableCell>
+      </TableRow>
+    ))
+  )}
+</TableBody>
         </Table>
       </TableContainer>
 

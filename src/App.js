@@ -12,6 +12,8 @@ import Login from "./pages/Login";
 import Locations from "./pages/Locations"; // استيراد صفحة إدارة المواقع
 import LeaveRequests from "./pages/LeaveRequests"; // استيراد صفحة طلبات الاستئذان
 import { DataProvider } from "./context/DataContext"; // استيراد DataProvider
+import ChangePassword from "./pages/ChangePassword";
+import ResetPassword from "./pages/ResetPassword";
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(() => {
@@ -28,6 +30,8 @@ function App() {
     <DataProvider> {/* تغليف التطبيق بـ DataProvider */}
       <Router>
         <Routes>
+        <Route path="/reset" element={<ResetPassword />} />
+        <Route path="/change-password" element={<ChangePassword />} />
           {/* صفحة تسجيل الدخول */}
           <Route path="/" element={<Login setIsLoggedIn={setIsLoggedIn} />} />
 
