@@ -21,17 +21,35 @@ const LeaveRequests = () => {
   const [snackbar, setSnackbar] = useState({ open: false, message: "" });
   const [loading, setLoading] = useState(false);
 
-  // Fetch leave requests from API
+  // Fetch leave requests and employee data from API
   useEffect(() => {
-    const fetchLeaveRequests = async () => {
+    const fetchData = async () => {
       setLoading(true);
       try {
-        const response = await fetch(
+        // جلب بيانات طلبات الاستئذان
+        const leaveResponse = await fetch(
           "https://shrouded-harbor-25880-c6a9ab9411a9.herokuapp.com/api/leavesRequest"
         );
-        const data = await response.json();
-        console.log(data); // لعرض البيانات المستلمة في الكونسول
-        setLeaveRequests(data); // تأكد أن البيانات تحتوي على الحقول المطلوبة
+        const leaveData = await leaveResponse.json();
+
+        // جلب بيانات الموظفين
+        const employeeResponse = await fetch(
+          "https://shrouded-harbor-25880-c6a9ab9411a9.herokuapp.com/api/employees" // افترض أن هذه هي API بيانات الموظفين
+        );
+        const employeeData = await employeeResponse.json();
+
+        // دمج بيانات الموظفين مع طلبات الاستئذان
+        const mergedRequests = leaveData.map((request) => {
+          const employee = employeeData.find(
+            (emp) => emp._id === request.employeeId // افترض أن employeeId موجود في بيانات الطلبات
+          );
+          return {
+            ...request,
+            fullname: employee ? employee.fullname : "غير معروف", // إضافة اسم الموظف
+          };
+        });
+
+        setLeaveRequests(mergedRequests); // تحديث الحالة بالبيانات المدمجة
       } catch (error) {
         console.error("Error fetching leave requests:", error);
       } finally {
@@ -39,11 +57,11 @@ const LeaveRequests = () => {
       }
     };
 
-    fetchLeaveRequests();
+    fetchData();
   }, []);
 
   // Handle approval/rejection of leave requests
-  const handleAction = async (id, adminResponse) => {
+  const handleAction = async (id, adminresponse) => {
     try {
       const response = await fetch(
         "https://shrouded-harbor-25880-c6a9ab9411a9.herokuapp.com/api/leavesRequest/leaverequest_admin",
@@ -53,7 +71,7 @@ const LeaveRequests = () => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            adminresponse: adminResponse, // either "Approved" or "Rejected"
+            adminresponse: adminresponse, // إما "Approved" أو "Rejected"
           }),
         }
       );
@@ -61,12 +79,12 @@ const LeaveRequests = () => {
       if (response.ok) {
         setSnackbar({
           open: true,
-          message: `تم ${adminResponse === "Approved" ? "الموافقة على" : "رفض"} الطلب بنجاح`,
+          message: `تم ${adminresponse === "Approved" ? "الموافقة على" : "رفض"} الطلب بنجاح`,
         });
         setLeaveRequests((prev) =>
           prev.map((request) =>
             request._id === id
-              ? { ...request, status: adminResponse === "Approved" ? "approved" : "rejected" }
+              ? { ...request, request: adminresponse === "Approved" ? "approved" : "rejected" }
               : request
           )
         );
@@ -107,7 +125,7 @@ const LeaveRequests = () => {
         elevation={1}
         sx={{
           width: "100%",
-          maxWidth: "800px",
+          maxWidth: "900px",
           padding: "20px",
           borderRadius: "12px",
           background: "#FFFFFF",
@@ -127,7 +145,7 @@ const LeaveRequests = () => {
               display: "flex",
               justifyContent: "center",
               alignItems: "center",
-              height: "200px",
+              height: "300px",
             }}
           >
             <CircularProgress />
@@ -141,7 +159,13 @@ const LeaveRequests = () => {
                     اسم الموظف
                   </TableCell>
                   <TableCell sx={{ color: "white", fontWeight: "bold" }}>
-                    التاريخ
+                    نوع الاجازة
+                  </TableCell>
+                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                    تاريخ البداية
+                  </TableCell>
+                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                    تاريخ النهاية
                   </TableCell>
                   <TableCell sx={{ color: "white", fontWeight: "bold" }}>
                     نوع الاجازه
@@ -157,14 +181,21 @@ const LeaveRequests = () => {
               <TableBody>
                 {leaveRequests.map((request) => (
                   <TableRow key={request._id}>
-                    <TableCell>{request.employeeName || "غير متوفر"}</TableCell>
-                    <TableCell>{request.date || "غير متوفر"}</TableCell>
+                    <TableCell>{request.fullname || "لايوجد بيانات"}</TableCell>
+                    <TableCell>{request.leaveType || "غير متوفر"}</TableCell>
+                    <TableCell>{request.startDate || "غير متوفر"}</TableCell>
+                    <TableCell>{request.endDate || "غير متوفر"}</TableCell>
                     <TableCell>{request.reason || "غير متوفر"}</TableCell>
+
                     <TableCell>
-                      {request.status === "approved" && (
+                      {request.adminresponse === "Pending" && (
+                        <Typography color="orange">قيد الانتظار</Typography>
+                      )}
+
+                      {request.adminresponse === "Approved" && (
                         <Typography color="green">مقبول</Typography>
                       )}
-                      {request.status === "rejected" && (
+                      {request.adminresponse === "rejected" && (
                         <Typography color="red">مرفوض</Typography>
                       )}
                       {request.status === "pending" && (
@@ -172,7 +203,7 @@ const LeaveRequests = () => {
                       )}
                     </TableCell>
                     <TableCell>
-                      {request.status === "pending" && (
+                      {request.adminresponse === "Pending" && (
                         <>
                           <IconButton
                             color="success"
