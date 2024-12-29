@@ -40,7 +40,7 @@ const Login = ({ setIsLoggedIn }) => {
       }
     } catch (error) {
       console.error("خطأ أثناء تسجيل الدخول:", error);
-      alert("حدث خطأ أثناء تسجيل الدخول. الرجاء المحاولة مرة أخرى.");
+      alert("No internet connection");
     }
   };
 

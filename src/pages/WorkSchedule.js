@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react"; 
 import {
   Box,
   Typography,
@@ -37,13 +37,13 @@ const WorkSchedule = () => {
   const [errorMessage, setErrorMessage] = useState("");
 
   const daysOfWeek = [
-    "الأحد",
-    "الإثنين",
-    "الثلاثاء",
-    "الأربعاء",
-    "الخميس",
-    "الجمعة",
-    "السبت",
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
   ];
 
   // جلب نماذج الدوام من API
@@ -179,64 +179,64 @@ const WorkSchedule = () => {
       {/* الرسالة التحذيرية عند وجود خطأ */}
       {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
 
-      {/* جدول عرض الجداول الحالية */}
-      <TableContainer component={Paper} sx={{ marginBottom: "20px" }}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>اسم الجدول</TableCell>
-              <TableCell>وقت البدء</TableCell>
-              <TableCell>وقت الانتهاء</TableCell>
-              <TableCell>أيام العمل</TableCell>
-              <TableCell>الإجراءات</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-  {schedules.length === 0 ? (
-    <TableRow>
-      <TableCell colSpan={5} align="center">
-        لا توجد جداول مضافة
-      </TableCell>
-    </TableRow>
-  ) : (
-    schedules.map((schedule) => (
-      <TableRow key={schedule._id}>
-        <TableCell>{schedule.shiftname}</TableCell>
-        <TableCell>{schedule.startTime}</TableCell>
-        <TableCell>{schedule.endTime}</TableCell>
-        <TableCell>
-          {Array.isArray(schedule.days) ? schedule.days.join(", ") : "غير محدد"}
-        </TableCell>
-        <TableCell>
-          <IconButton
-            color="primary"
-            onClick={() => handleDialogOpen(schedule)}
-          >
-            <EditIcon />
-          </IconButton>
-          <IconButton
-            color="error"
-            onClick={() => handleDeleteSchedule(schedule._id)}
-          >
-            <DeleteIcon />
-          </IconButton>
-        </TableCell>
-      </TableRow>
-    ))
-  )}
-</TableBody>
-        </Table>
-      </TableContainer>
-
       {/* زر إضافة جدول جديد */}
       <Button
         variant="contained"
         color="primary"
         onClick={() => handleDialogOpen()}
-        sx={{ borderRadius: "8px" }}
+        sx={{ borderRadius: "8px", marginBottom: "20px" }}
       >
         إضافة جدول جديد
       </Button>
+
+      {/* جدول عرض الجداول الحالية */}
+      <TableContainer component={Paper} sx={{ marginBottom: "20px" }}>
+        <Table>
+          <TableHead sx={{ backgroundColor: "#3A6D8C" }}>
+            <TableRow>
+              <TableCell sx={{ color: "white" }}>اسم الجدول</TableCell>
+              <TableCell sx={{ color: "white" }}>وقت البدء</TableCell>
+              <TableCell sx={{ color: "white" }}>وقت الانتهاء</TableCell>
+              <TableCell sx={{ color: "white" }}>أيام العمل</TableCell>
+              <TableCell sx={{ color: "white" }}>الإجراءات</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {schedules.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={5} align="center">
+                  لا توجد جداول مضافة
+                </TableCell>
+              </TableRow>
+            ) : (
+              schedules.map((schedule) => (
+                <TableRow key={schedule._id} sx={{ "&:hover": { backgroundColor: "#f1f1f1" } }}>
+                  <TableCell>{schedule.shiftname}</TableCell>
+                  <TableCell>{schedule.startTime}</TableCell>
+                  <TableCell>{schedule.endTime}</TableCell>
+                  <TableCell>
+                    {Array.isArray(schedule.days) ? schedule.days.join(", ") : "غير محدد"}
+                  </TableCell>
+                  <TableCell>
+                    <IconButton
+                      color="primary"
+                      onClick={() => handleDialogOpen(schedule)}
+                    >
+                      <EditIcon />
+                    </IconButton>
+                    <IconButton
+                      color="error"
+                      onClick={() => handleDeleteSchedule(schedule._id)}
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </TableContainer>
 
       {/* نافذة إضافة/تعديل الجدول */}
       <Dialog open={openDialog} onClose={handleDialogClose} fullWidth maxWidth="sm">
@@ -284,9 +284,7 @@ const WorkSchedule = () => {
               />
             </Grid>
             <Grid item xs={12}>
-              <Typography variant="subtitle1" gutterBottom>
-                اختر أيام العمل:
-              </Typography>
+              <Typography variant="body1">أيام العمل:</Typography>
               {daysOfWeek.map((day) => (
                 <FormControlLabel
                   key={day}
@@ -307,7 +305,7 @@ const WorkSchedule = () => {
             إلغاء
           </Button>
           <Button onClick={handleScheduleSubmit} color="primary">
-            {editingSchedule ? "تحديث" : "إضافة"}
+            حفظ
           </Button>
         </DialogActions>
       </Dialog>
