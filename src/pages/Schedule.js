@@ -14,7 +14,7 @@ function Schedule() {
   };
 
   return (
-    <Box p={3}>
+    <Box p={3} sx={{ direction: "rtl", textAlign: "right" }}> {/* إضافة direction: "rtl" */}
       <Typography variant="h4" gutterBottom>جدولة العمل</Typography>
 
       {/* نموذج إضافة جدول العمل */}
@@ -26,13 +26,15 @@ function Schedule() {
         fullWidth
         variant="outlined"
         margin="normal"
+        sx={{ textAlign: "right" }}
       />
       <FormControl fullWidth margin="normal">
-        <InputLabel>الفتره</InputLabel>
+        <InputLabel sx={{ textAlign: "right" }}>الفتره</InputLabel> {/* تعديل محاذاة النص */}
         <Select
           name="shift"
           value={schedule.shift}
           onChange={handleInputChange}
+          sx={{ textAlign: "right" }}
         >
           <MenuItem value="Morning">صباحي</MenuItem>
           <MenuItem value="Evening">مسائي</MenuItem>
@@ -48,8 +50,11 @@ function Schedule() {
         variant="outlined"
         margin="normal"
         InputLabelProps={{ shrink: true }}
+        sx={{ textAlign: "right" }}
       />
-      <Button onClick={handleAddSchedule} variant="contained" color="primary">إضافة الجدول</Button>
+      <Button onClick={handleAddSchedule} variant="contained" color="primary" sx={{ textAlign: "right" }}>
+        إضافة الجدول
+      </Button>
     </Box>
   );
 }

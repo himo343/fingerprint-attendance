@@ -4,7 +4,7 @@ import Sidebar from "./Sidebar";
 
 const Layout = ({ children }) => {
   return (
-    <Box display="flex">
+    <Box display="flex" flexDirection="row-reverse"> {/* تغيير الاتجاه إلى row-reverse */}
       {/* القائمة الجانبية */}
       <Sidebar />
       {/* محتوى الصفحة */}

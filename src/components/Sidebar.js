@@ -43,6 +43,7 @@ const Sidebar = () => {
         boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
         marginLeft: "16px", // إزاحة القائمة إلى جهة اليمين
         position: "relative", // إضافة خاصية لضبط موقع العنصر
+        direction: "rtl", // إضافة direction: "rtl"
       }}
     >
       <Typography
@@ -59,7 +60,7 @@ const Sidebar = () => {
         بصمة تواجد
       </Typography>
       <Divider sx={{ background: "#EADBB1", marginBottom: "20px" }} />
-      <List>
+      <List sx={{ direction: "rtl", textAlign: "right" }}>
         {menuItems.map((item, index) => (
           <ListItem key={index} disablePadding>
             <ListItemButton
@@ -71,9 +72,10 @@ const Sidebar = () => {
                 "&:hover": {
                   background: "#6A9AB0",
                 },
+                textAlign: "right", // إضافة textAlign: "right"
               }}
             >
-              <ListItemIcon sx={{ color: "#EADBB1" }}>{item.icon}</ListItemIcon>
+              <ListItemIcon sx={{ color: "#EADBB1", marginLeft: "8px" }}>{item.icon}</ListItemIcon>
               <ListItemText
                 primary={item.text}
                 sx={{

@@ -22,55 +22,46 @@ const Dashboard = () => {
       chart: { type: "donut", height: 200 },
       labels: ["حضور", "تأخيرات", "غياب"],
       colors: ["#3A6D8C", "#FFB74D", "#E57373"],
-      legend: { position: "bottom" },
+      legend: { position: "bottom", horizontalAlign: "right" }, // تعديل محاذاة legend
     },
   };
 
   const barChartData = {
-    series: [
-      { name: "عدد الموظفين", data: [50, 30, 20] },
-    ],
+    series: [{ name: "عدد الموظفين", data: [50, 30, 20] }],
     options: {
       chart: { type: "bar", height: 200 },
       colors: ["#3A6D8C"],
       xaxis: {
         categories: ["الفرع الرئيسي", "الفرع1", "الفرع2"],
-        title: { text: "الموقع" },
+        title: { text: "الموقع", style: { cssClass: "rtl-text" } }, // دعم RTL للنص
       },
-      yaxis: { title: { text: "عدد الموظفين" } },
+      yaxis: { title: { text: "عدد الموظفين", style: { cssClass: "rtl-text" } } },
     },
   };
 
   const lineChartData = {
-    series: [
-      { name: "ساعات العمل", data: [8, 7, 6, 9, 8, 7, 6] },
-    ],
+    series: [{ name: "ساعات العمل", data: [8, 7, 6, 9, 8, 7, 6] }],
     options: {
       chart: { type: "line", height: 200 },
       colors: ["#3A6D8C"],
       xaxis: {
         categories: ["الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"],
-        title: { text: "اليوم" },
+        title: { text: "اليوم", style: { cssClass: "rtl-text" } }, // دعم RTL للنص
       },
-      yaxis: { title: { text: "ساعات العمل" } },
+      yaxis: { title: { text: "ساعات العمل", style: { cssClass: "rtl-text" } } },
     },
   };
 
   const areaChartData = {
-    series: [
-      {
-        name: "الرواتب",
-        data: [5000, 4800, 4700],
-      },
-    ],
+    series: [{ name: "الرواتب", data: [5000, 4800, 4700] }],
     options: {
       chart: { type: "area", height: 200 },
       colors: ["#6A9AB0"],
       xaxis: {
         categories: ["الفرع الرئيسي", "الفرع1", "الفرع2"],
-        title: { text: "الموقع" },
+        title: { text: "الموقع", style: { cssClass: "rtl-text" } }, // دعم RTL للنص
       },
-      yaxis: { title: { text: "الرواتب (ريال)" } },
+      yaxis: { title: { text: "الرواتب (ريال)", style: { cssClass: "rtl-text" } } },
       fill: { type: "gradient", gradient: { shade: "light", type: "vertical", opacityFrom: 0.7, opacityTo: 0.2 } },
     },
   };
@@ -87,6 +78,7 @@ const Dashboard = () => {
         background: "#FFFFFF",
         minHeight: "100vh",
         borderRadius: "16px",
+        textAlign: "right", // محاذاة النص إلى اليمين
       }}
     >
       <Typography
@@ -101,26 +93,28 @@ const Dashboard = () => {
         لوحة التحكم
       </Typography>
 
-      {/* زر تحديث البيانات */}
-      <IconButton
-        color="primary"
-        onClick={updateData} // عند الضغط على الزر سيتم تحديث البيانات
-        sx={{
-          position: "fixed",
-          top: "20px",
-          right: "20px",
-          zIndex: 1000,
-          backgroundColor: "#3A6D8C",
-          color: "#fff",
-          borderRadius: "50%",
-          padding: "10px",
-        }}
-      >
-        <RefreshIcon />
-      </IconButton>
-
+<IconButton
+  color="primary"
+  onClick={updateData} // عند الضغط على الزر سيتم تحديث البيانات
+  sx={{
+    position: "fixed", // يجعل الزر ثابتًا
+    top: "35px", // المسافة من الأعلى
+    left: "20px", // المسافة من اليسار
+    zIndex: 1000, // التأكد من أن الزر فوق العناصر الأخرى
+    backgroundColor: "#3A6D8C",
+    color: "#fff",
+    borderRadius: "50%",
+    padding: "10px",
+    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.2)", // إضافة ظل لتحسين المظهر
+    "&:hover": {
+      backgroundColor: "#2A5C7A", // تغيير لون الخلفية عند التحويم
+    },
+  }}
+>
+  <RefreshIcon />
+</IconButton>
       {/* المؤشرات الرئيسية */}
-      <Grid container spacing={3}>
+      <Grid container spacing={3} direction="row-reverse"> {/* عكس اتجاه الصفوف */}
         {/* كروت البيانات الجديدة */}
         <Grid item xs={12} md={3}>
           <Card
@@ -129,6 +123,7 @@ const Dashboard = () => {
               color: "white",
               borderRadius: "12px",
               boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+              textAlign: "right", // محاذاة النص إلى اليمين
             }}
           >
             <CardContent>
@@ -144,6 +139,7 @@ const Dashboard = () => {
               color: "white",
               borderRadius: "12px",
               boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+              textAlign: "right", // محاذاة النص إلى اليمين
             }}
           >
             <CardContent>
@@ -159,6 +155,7 @@ const Dashboard = () => {
               color: "white",
               borderRadius: "12px",
               boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+              textAlign: "right", // محاذاة النص إلى اليمين
             }}
           >
             <CardContent>
@@ -174,6 +171,7 @@ const Dashboard = () => {
               color: "white",
               borderRadius: "12px",
               boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+              textAlign: "right", // محاذاة النص إلى اليمين
             }}
           >
             <CardContent>
@@ -189,6 +187,7 @@ const Dashboard = () => {
               color: "white",
               borderRadius: "12px",
               boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+              textAlign: "right", // محاذاة النص إلى اليمين
             }}
           >
             <CardContent>
@@ -204,6 +203,7 @@ const Dashboard = () => {
               color: "white",
               borderRadius: "12px",
               boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+              textAlign: "right", // محاذاة النص إلى اليمين
             }}
           >
             <CardContent>
@@ -215,11 +215,11 @@ const Dashboard = () => {
       </Grid>
 
       {/* المخططات التفاعلية */}
-      <Grid container spacing={3} mt={3}>
+      <Grid container spacing={3} mt={3} direction="row-reverse"> {/* عكس اتجاه الصفوف */}
         <Grid item xs={12} sm={6} md={3}>
           <Card sx={{ borderRadius: "16px" }}>
             <CardContent>
-              <Typography variant="h6" gutterBottom>
+              <Typography variant="h6" gutterBottom sx={{ textAlign: "right" }}>
                 تحليل الحضور
               </Typography>
               <Chart options={donutChartData.options} series={donutChartData.series} type="donut" />
@@ -229,7 +229,7 @@ const Dashboard = () => {
         <Grid item xs={12} sm={6} md={3}>
           <Card sx={{ borderRadius: "16px" }}>
             <CardContent>
-              <Typography variant="h6" gutterBottom>
+              <Typography variant="h6" gutterBottom sx={{ textAlign: "right" }}>
                 الحضور حسب الموقع
               </Typography>
               <Chart options={barChartData.options} series={barChartData.series} type="bar" />
@@ -239,7 +239,7 @@ const Dashboard = () => {
         <Grid item xs={12} sm={6} md={3}>
           <Card sx={{ borderRadius: "16px" }}>
             <CardContent>
-              <Typography variant="h6" gutterBottom>
+              <Typography variant="h6" gutterBottom sx={{ textAlign: "right" }}>
                 ساعات العمل الأسبوعية
               </Typography>
               <Chart options={lineChartData.options} series={lineChartData.series} type="line" />
@@ -249,7 +249,7 @@ const Dashboard = () => {
         <Grid item xs={12} sm={6} md={3}>
           <Card sx={{ borderRadius: "16px" }}>
             <CardContent>
-              <Typography variant="h6" gutterBottom>
+              <Typography variant="h6" gutterBottom sx={{ textAlign: "right" }}>
                 تحليل الرواتب لكل موقع
               </Typography>
               <Chart options={areaChartData.options} series={areaChartData.series} type="area" />

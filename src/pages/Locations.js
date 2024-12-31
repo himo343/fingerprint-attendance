@@ -100,7 +100,7 @@ const Locations = () => {
   };
 
   return (
-    <Box sx={{ padding: "20px", background: "#F7F9FC", minHeight: "100vh" }}>
+    <Box sx={{ padding: "20px", background: "#F7F9FC", minHeight: "100vh", textAlign: "right" }}>
       <Typography
         variant="h4"
         gutterBottom
@@ -114,7 +114,7 @@ const Locations = () => {
         sx={{
           position: "absolute",
           top: "20px",
-          right: "20px",
+          left: "20px", // تغيير من right إلى left
           backgroundColor: "#fff",
           boxShadow: 2,
           borderRadius: "50%",
@@ -126,7 +126,7 @@ const Locations = () => {
 
       <Paper
         elevation={3}
-        sx={{ padding: "20px", borderRadius: "16px", marginBottom: "20px" }}
+        sx={{ padding: "20px", borderRadius: "16px", marginBottom: "20px", textAlign: "right" }}
       >
         <Typography
           variant="h6"
@@ -144,6 +144,7 @@ const Locations = () => {
               fullWidth
               value={formData.name}
               onChange={handleInputChange}
+              sx={{ textAlign: "right" }}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
@@ -154,6 +155,7 @@ const Locations = () => {
               fullWidth
               value={formData.address}
               onChange={handleInputChange}
+              sx={{ textAlign: "right" }}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
@@ -164,6 +166,7 @@ const Locations = () => {
               fullWidth
               value={formData.city}
               onChange={handleInputChange}
+              sx={{ textAlign: "right" }}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
@@ -175,6 +178,7 @@ const Locations = () => {
               fullWidth
               value={formData.radius}
               onChange={handleInputChange}
+              sx={{ textAlign: "right" }}
             />
           </Grid>
         </Grid>
@@ -225,11 +229,11 @@ const Locations = () => {
         المواقع المسجلة
       </Typography>
 
-      <Paper elevation={3} sx={{ padding: "20px", borderRadius: "16px" }}>
+      <Paper elevation={3} sx={{ padding: "20px", borderRadius: "16px", textAlign: "right" }}>
         <Grid container spacing={2}>
           {locations.length > 0 ? (
             <Grid item xs={12}>
-              <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "right" }}>
                 <thead>
                   <tr>
                     <th style={{ padding: "10px", border: "1px solid #ddd" }}>

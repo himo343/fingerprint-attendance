@@ -171,7 +171,7 @@ const WorkSchedule = () => {
   };
 
   return (
-    <Box p={3}>
+    <Box p={3} sx={{ direction: "rtl", textAlign: "right" }}>
       <Typography variant="h4" gutterBottom>
         جدولة ساعات العمل
       </Typography>
@@ -194,11 +194,11 @@ const WorkSchedule = () => {
         <Table>
           <TableHead sx={{ backgroundColor: "#3A6D8C" }}>
             <TableRow>
-              <TableCell sx={{ color: "white" }}>اسم الجدول</TableCell>
-              <TableCell sx={{ color: "white" }}>وقت البدء</TableCell>
-              <TableCell sx={{ color: "white" }}>وقت الانتهاء</TableCell>
-              <TableCell sx={{ color: "white" }}>أيام العمل</TableCell>
-              <TableCell sx={{ color: "white" }}>الإجراءات</TableCell>
+              <TableCell sx={{ color: "white", textAlign: "right" }}>اسم الجدول</TableCell>
+              <TableCell sx={{ color: "white", textAlign: "right" }}>وقت البدء</TableCell>
+              <TableCell sx={{ color: "white", textAlign: "right" }}>وقت الانتهاء</TableCell>
+              <TableCell sx={{ color: "white", textAlign: "right" }}>أيام العمل</TableCell>
+              <TableCell sx={{ color: "white", textAlign: "right" }}>الإجراءات</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -211,13 +211,13 @@ const WorkSchedule = () => {
             ) : (
               schedules.map((schedule) => (
                 <TableRow key={schedule._id} sx={{ "&:hover": { backgroundColor: "#f1f1f1" } }}>
-                  <TableCell>{schedule.shiftname}</TableCell>
-                  <TableCell>{schedule.startTime}</TableCell>
-                  <TableCell>{schedule.endTime}</TableCell>
-                  <TableCell>
+                  <TableCell sx={{ textAlign: "right" }}>{schedule.shiftname}</TableCell>
+                  <TableCell sx={{ textAlign: "right" }}>{schedule.startTime}</TableCell>
+                  <TableCell sx={{ textAlign: "right" }}>{schedule.endTime}</TableCell>
+                  <TableCell sx={{ textAlign: "right" }}>
                     {Array.isArray(schedule.days) ? schedule.days.join(", ") : "غير محدد"}
                   </TableCell>
-                  <TableCell>
+                  <TableCell sx={{ textAlign: "right" }}>
                     <IconButton
                       color="primary"
                       onClick={() => handleDialogOpen(schedule)}
@@ -239,7 +239,7 @@ const WorkSchedule = () => {
       </TableContainer>
 
       {/* نافذة إضافة/تعديل الجدول */}
-      <Dialog open={openDialog} onClose={handleDialogClose} fullWidth maxWidth="sm">
+      <Dialog open={openDialog} onClose={handleDialogClose} fullWidth maxWidth="sm" sx={{ direction: "rtl", textAlign: "right" }}>
         <DialogTitle>{editingSchedule ? "تعديل جدول العمل" : "إضافة جدول جديد"}</DialogTitle>
         <DialogContent>
           <Grid container spacing={2}>
@@ -253,6 +253,7 @@ const WorkSchedule = () => {
                 variant="outlined"
                 error={!newSchedule.shiftname}
                 helperText={!newSchedule.shiftname ? "يرجى إدخال اسم الجدول" : ""}
+                sx={{ textAlign: "right" }}
               />
             </Grid>
             <Grid item xs={6}>
@@ -267,6 +268,7 @@ const WorkSchedule = () => {
                 InputLabelProps={{ shrink: true }}
                 error={!newSchedule.startTime}
                 helperText={!newSchedule.startTime ? "يرجى إدخال وقت البدء" : ""}
+                sx={{ textAlign: "right" }}
               />
             </Grid>
             <Grid item xs={6}>
@@ -281,6 +283,7 @@ const WorkSchedule = () => {
                 InputLabelProps={{ shrink: true }}
                 error={!newSchedule.endTime}
                 helperText={!newSchedule.endTime ? "يرجى إدخال وقت الانتهاء" : ""}
+                sx={{ textAlign: "right" }}
               />
             </Grid>
             <Grid item xs={12}>
@@ -295,6 +298,7 @@ const WorkSchedule = () => {
                     />
                   }
                   label={day}
+                  sx={{ textAlign: "right" }}
                 />
               ))}
             </Grid>

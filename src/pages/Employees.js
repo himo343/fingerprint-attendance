@@ -158,10 +158,10 @@ const EmployeeManagement = () => {
   };
 
   return (
-    <Box sx={{ padding: "30px", backgroundColor: "#f5f5f5", minHeight: "100vh" }}>
+    <Box sx={{ padding: "30px", backgroundColor: "#f5f5f5", minHeight: "100vh", textAlign: "right" }}>
       <Typography variant="h4" gutterBottom sx={{ textAlign: "center", color: "#3A6D8C" }}>إدارة الموظفين</Typography>
 
-      <Paper sx={{ padding: "20px", marginBottom: "20px", backgroundColor: "#ffffff", borderRadius: "8px", boxShadow: 2 }}>
+      <Paper sx={{ padding: "20px", marginBottom: "20px", backgroundColor: "#ffffff", borderRadius: "8px", boxShadow: 2, textAlign: "right" }}>
         <Typography variant="h6" sx={{ marginBottom: "20px", color: "#001F3F" }}>
           {editMode ? "تعديل بيانات الموظف" : "إضافة موظف جديد"}
         </Typography>
@@ -179,6 +179,7 @@ const EmployeeManagement = () => {
                   value={employeeData[field]}
                   onChange={handleInputChange}
                   required={["fullname", "phone", "email", "dateofbirth", "salary"].includes(field)}
+                  sx={{ textAlign: "right" }}
                 />
               </Grid>
             ))}
@@ -192,6 +193,7 @@ const EmployeeManagement = () => {
                   value={employeeData.workScheduleId}
                   onChange={handleInputChange}
                   required
+                  sx={{ textAlign: "right" }}
                 >
                   {workSchedules.map((schedule) => (
                     <MenuItem key={schedule._id} value={schedule._id}>
@@ -211,6 +213,7 @@ const EmployeeManagement = () => {
                   value={employeeData.locationId}
                   onChange={handleInputChange}
                   required
+                  sx={{ textAlign: "right" }}
                 >
                   {locations.map((location) => (
                     <MenuItem key={location._id} value={location._id}>
@@ -235,7 +238,7 @@ const EmployeeManagement = () => {
           <TableHead sx={{ backgroundColor: "#3A6D8C" }}>
             <TableRow>
               {["الاسم", "رقم الهاتف", "البريد الإلكتروني", "القسم", "تاريخ الميلاد", "الراتب", "الإجراءات"].map((header, index) => (
-                <TableCell key={index} sx={{ color: "#ffffff", fontWeight: "bold" }}>{header}</TableCell>
+                <TableCell key={index} sx={{ color: "#ffffff", fontWeight: "bold", textAlign: "right" }}>{header}</TableCell>
               ))}
             </TableRow>
           </TableHead>
@@ -243,7 +246,7 @@ const EmployeeManagement = () => {
             {employees.map((employee, index) => (
               <TableRow key={index} sx={{ "&:nth-of-type(odd)": { backgroundColor: "#f0f8ff" } }}>
                 {["fullname", "phone", "email", "department", "dateofbirth", "salary"].map((field, i) => (
-                  <TableCell key={i}>{field === "dateofbirth" ? new Date(employee[field]).toLocaleDateString() : employee[field]}</TableCell>
+                  <TableCell key={i} sx={{ textAlign: "right" }}>{field === "dateofbirth" ? new Date(employee[field]).toLocaleDateString() : employee[field]}</TableCell>
                 ))}
                 <TableCell>
                   <IconButton onClick={() => handleEditEmployee(index)} color="primary" sx={{ marginRight: "10px" }}>

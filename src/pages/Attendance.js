@@ -24,7 +24,7 @@ import DownloadIcon from "@mui/icons-material/Download";
 import RefreshIcon from "@mui/icons-material/Refresh"; // إضافة أيقونة التحديث
 
 function Attendance() {
-  const [attendanceData, setAttendanceData] = useState([
+  const [attendanceData] = useState([
     { id: 1, employee: "أحمد علي", date: "2024-11-15", status: "حاضر" },
     { id: 2, employee: "محمد يوسف", date: "2024-11-15", status: "غائب" },
     { id: 3, employee: "سعاد خالد", date: "2024-11-15", status: "حاضر" },
@@ -66,8 +66,8 @@ function Attendance() {
   };
 
   return (
-    <Box p={3} sx={{ background: "#F7F9FC", minHeight: "100vh", borderRadius: "16px" }}>
-      <Grid container justifyContent="space-between" alignItems="center" sx={{ marginBottom: "20px" }}>
+    <Box p={3} sx={{ background: "#F7F9FC", minHeight: "100vh", borderRadius: "16px", textAlign: "right" }}>
+      <Grid container justifyContent="space-between" alignItems="center" direction="row-reverse" sx={{ marginBottom: "20px" }}>
         <Grid item>
           <Typography
             variant="h4"
@@ -104,6 +104,7 @@ function Attendance() {
               fullWidth
               variant="outlined"
               placeholder="أدخل اسم الموظف أو التاريخ"
+              sx={{ textAlign: "right" }}
             />
           </Grid>
           <Grid item xs={12} sm={4}>
@@ -113,6 +114,7 @@ function Attendance() {
                 labelId="filter-status-label"
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
+                sx={{ textAlign: "right" }}
               >
                 <MenuItem value="">الكل</MenuItem>
                 <MenuItem value="حاضر">حاضر</MenuItem>
@@ -141,17 +143,17 @@ function Attendance() {
           <Table>
             <TableHead sx={{ background: "#001F3F" }}>
               <TableRow>
-                <TableCell sx={{ color: "#FFFFFF", fontWeight: "bold" }}>اسم الموظف</TableCell>
-                <TableCell sx={{ color: "#FFFFFF", fontWeight: "bold" }}>التاريخ</TableCell>
-                <TableCell sx={{ color: "#FFFFFF", fontWeight: "bold" }}>الحالة</TableCell>
+                <TableCell sx={{ color: "#FFFFFF", fontWeight: "bold", textAlign: "right" }}>اسم الموظف</TableCell>
+                <TableCell sx={{ color: "#FFFFFF", fontWeight: "bold", textAlign: "right" }}>التاريخ</TableCell>
+                <TableCell sx={{ color: "#FFFFFF", fontWeight: "bold", textAlign: "right" }}>الحالة</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {filteredData.map((attendance) => (
                 <TableRow key={attendance.id}>
-                  <TableCell>{attendance.employee}</TableCell>
-                  <TableCell>{attendance.date}</TableCell>
-                  <TableCell>{attendance.status}</TableCell>
+                  <TableCell sx={{ textAlign: "right" }}>{attendance.employee}</TableCell>
+                  <TableCell sx={{ textAlign: "right" }}>{attendance.date}</TableCell>
+                  <TableCell sx={{ textAlign: "right" }}>{attendance.status}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -183,6 +185,7 @@ function Attendance() {
         message={snackbar.message}
         autoHideDuration={3000}
         onClose={handleCloseSnackbar}
+        sx={{ textAlign: "right" }}
       />
     </Box>
   );

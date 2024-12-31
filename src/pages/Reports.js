@@ -117,6 +117,7 @@ function Reports() {
         background: "#F7F9FC",
         minHeight: "100vh",
         borderRadius: "16px",
+        textAlign: "right", // محاذاة النص إلى اليمين
       }}
     >
       <Typography
@@ -132,7 +133,7 @@ function Reports() {
       </Typography>
 
       {/* شريط البحث وزر التنزيل */}
-      <Grid container spacing={2} mb={3}>
+      <Grid container spacing={2} mb={3} direction="row-reverse">
         <Grid item xs={12} sm={8}>
           <TextField
             fullWidth
@@ -140,6 +141,7 @@ function Reports() {
             variant="outlined"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
+            sx={{ textAlign: "right" }}
           />
         </Grid>
         <Grid item xs={12} sm={4} container spacing={2}>
@@ -173,13 +175,13 @@ function Reports() {
           </Grid>
           <Grid item xs={4}>
             <IconButton
-              onClick={handleRefresh} // زر التحديث بدون أي لون
+              onClick={handleRefresh}
               sx={{
                 width: "100%",
                 height: "100%",
               }}
             >
-              <RefreshIcon /> {/* أيقونة التحديث */}
+              <RefreshIcon />
             </IconButton>
           </Grid>
         </Grid>
@@ -196,28 +198,28 @@ function Reports() {
         <Table>
           <TableHead sx={{ background: "#3A6D8C" }}>
             <TableRow>
-              <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+              <TableCell sx={{ color: "white", fontWeight: "bold", textAlign: "right" }}>
                 اسم الموظف
               </TableCell>
-              <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+              <TableCell sx={{ color: "white", fontWeight: "bold", textAlign: "right" }}>
                 التاريخ
               </TableCell>
-              <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+              <TableCell sx={{ color: "white", fontWeight: "bold", textAlign: "right" }}>
                 الحالة
               </TableCell>
-              <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+              <TableCell sx={{ color: "white", fontWeight: "bold", textAlign: "right" }}>
                 وقت الحضور
               </TableCell>
-              <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+              <TableCell sx={{ color: "white", fontWeight: "bold", textAlign: "right" }}>
                 وقت الانصراف
               </TableCell>
-              <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+              <TableCell sx={{ color: "white", fontWeight: "bold", textAlign: "right" }}>
                 عدد الساعات
               </TableCell>
-              <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+              <TableCell sx={{ color: "white", fontWeight: "bold", textAlign: "right" }}>
                 الراتب
               </TableCell>
-              <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+              <TableCell sx={{ color: "white", fontWeight: "bold", textAlign: "right" }}>
                 الموقع
               </TableCell>
             </TableRow>
@@ -225,14 +227,14 @@ function Reports() {
           <TableBody>
             {filteredReports.map((report) => (
               <TableRow key={report.id}>
-                <TableCell>{report.name}</TableCell>
-                <TableCell>{report.date}</TableCell>
-                <TableCell>{report.status}</TableCell>
-                <TableCell>{report.checkInTime}</TableCell>
-                <TableCell>{report.checkOutTime}</TableCell>
-                <TableCell>{report.workHours}</TableCell>
-                <TableCell>{report.salary}</TableCell>
-                <TableCell>{report.location}</TableCell>
+                <TableCell sx={{ textAlign: "right" }}>{report.name}</TableCell>
+                <TableCell sx={{ textAlign: "right" }}>{report.date}</TableCell>
+                <TableCell sx={{ textAlign: "right" }}>{report.status}</TableCell>
+                <TableCell sx={{ textAlign: "right" }}>{report.checkInTime}</TableCell>
+                <TableCell sx={{ textAlign: "right" }}>{report.checkOutTime}</TableCell>
+                <TableCell sx={{ textAlign: "right" }}>{report.workHours}</TableCell>
+                <TableCell sx={{ textAlign: "right" }}>{report.salary}</TableCell>
+                <TableCell sx={{ textAlign: "right" }}>{report.location}</TableCell>
               </TableRow>
             ))}
           </TableBody>
