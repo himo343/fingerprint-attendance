@@ -21,12 +21,12 @@ const LeaveRequests = () => {
   const [snackbar, setSnackbar] = useState({ open: false, message: "" });
   const [loading, setLoading] = useState(false);
 
-  // Fetch leave requests and employee data from API
+  // جلب بيانات طلبات الاستئذان والموظفين
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        // جلب بيانات طلبات الاستئذان
+        // جلب طلبات الاستئذان
         const leaveResponse = await fetch(
           "https://shrouded-harbor-25880-c6a9ab9411a9.herokuapp.com/api/leavesRequest"
         );
@@ -34,22 +34,25 @@ const LeaveRequests = () => {
 
         // جلب بيانات الموظفين
         const employeeResponse = await fetch(
-          "https://shrouded-harbor-25880-c6a9ab9411a9.herokuapp.com/api/employees" // افترض أن هذه هي API بيانات الموظفين
+          "https://shrouded-harbor-25880-c6a9ab9411a9.herokuapp.com/api/employees"
         );
         const employeeData = await employeeResponse.json();
 
-        // دمج بيانات الموظفين مع طلبات الاستئذان
+        console.log("Leave Data:", leaveData);
+        console.log("Employee Data:", employeeData);
+
+        // دمج البيانات بين الموظفين وطلبات الاستئذان
         const mergedRequests = leaveData.map((request) => {
           const employee = employeeData.find(
-            (emp) => emp._id === request.employeeId // افترض أن employeeId موجود في بيانات الطلبات
+            (emp) => emp._id === request.employeeId
           );
           return {
             ...request,
-            fullname: employee ? employee.fullname : "غير معروف", // إضافة اسم الموظف
+            fullname: employee ? employee.fullname : "غير معروف", // التأكد من وجود اسم الموظف
           };
         });
 
-        setLeaveRequests(mergedRequests); // تحديث الحالة بالبيانات المدمجة
+        setLeaveRequests(mergedRequests);
       } catch (error) {
         console.error("Error fetching leave requests:", error);
       } finally {
@@ -60,9 +63,13 @@ const LeaveRequests = () => {
     fetchData();
   }, []);
 
-  // Handle approval/rejection of leave requests
+  // التعامل مع القبول أو الرفض
   const handleAction = async (id, adminresponse) => {
+    console.log("Request ID:", id); // التحقق من الـ ID
+    console.log("Response:", adminresponse); // التحقق من الاستجابة
+
     try {
+      // تأكد من إرسال الـ ID و الـ adminresponse
       const response = await fetch(
         "https://shrouded-harbor-25880-c6a9ab9411a9.herokuapp.com/api/leavesRequest/leaverequest_admin",
         {
@@ -71,10 +78,14 @@ const LeaveRequests = () => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            adminresponse: adminresponse, // إما "Approved" أو "Rejected"
+            adminresponse: adminresponse,
+            requestId: id, // إرسال ID الطلب
           }),
         }
       );
+
+      const data = await response.json();
+      console.log("API Response:", data); // التحقق من الرد
 
       if (response.ok) {
         setSnackbar({
@@ -84,7 +95,7 @@ const LeaveRequests = () => {
         setLeaveRequests((prev) =>
           prev.map((request) =>
             request._id === id
-              ? { ...request, request: adminresponse === "Approved" ? "approved" : "rejected" }
+              ? { ...request, adminresponse: adminresponse }
               : request
           )
         );
@@ -195,7 +206,7 @@ const LeaveRequests = () => {
                       {request.adminresponse === "Approved" && (
                         <Typography color="green">مقبول</Typography>
                       )}
-                      {request.adminresponse === "rejected" && (
+                      {request.adminresponse === "Rejected" && (
                         <Typography color="red">مرفوض</Typography>
                       )}
                       {request.status === "pending" && (
@@ -230,9 +241,9 @@ const LeaveRequests = () => {
 
       <Snackbar
         open={snackbar.open}
-        message={snackbar.message}
-        autoHideDuration={3000}
+        autoHideDuration={4000}
         onClose={handleCloseSnackbar}
+        message={snackbar.message}
       />
     </Box>
   );

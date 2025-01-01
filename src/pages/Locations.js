@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   IconButton,
@@ -38,13 +38,28 @@ const Locations = () => {
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
 
+  useEffect(() => {
+    fetchLocations();
+  }, []);
+
+  const fetchLocations = async () => {
+    try {
+      const response = await fetch("https://shrouded-harbor-25880-c6a9ab9411a9.herokuapp.com/api/locations");
+      const data = await response.json();
+      setLocations(data);
+    } catch (error) {
+      setSnackbarMessage("خطأ في جلب المواقع.");
+      setOpenSnackbar(true);
+    }
+  };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     const newValue = name === "radius" ? parseInt(value) || 1000 : value;
     setFormData({ ...formData, [name]: newValue });
   };
 
-  const handleAddLocation = () => {
+  const handleAddLocation = async () => {
     if (
       formData.name &&
       formData.address &&
@@ -56,19 +71,32 @@ const Locations = () => {
       !isNaN(formData.radius) &&
       formData.radius > 0
     ) {
-      const newLocation = {
-        ...formData,
-        createdAt: new Date().toLocaleString(),
-      };
-      setLocations([...locations, newLocation]);
-      setFormData({
-        name: "",
-        address: "",
-        city: "",
-        latitude: defaultCenter.lat,
-        longitude: defaultCenter.lng,
-        radius: 1000,
-      });
+      try {
+        const response = await fetch("https://shrouded-harbor-25880-c6a9ab9411a9.herokuapp.com/api/locations", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(formData),
+        });
+        if (response.ok) {
+          fetchLocations();
+          setFormData({
+            name: "",
+            address: "",
+            city: "",
+            latitude: defaultCenter.lat,
+            longitude: defaultCenter.lng,
+            radius: 1000,
+          });
+        } else {
+          setSnackbarMessage("خطأ في إضافة الموقع.");
+          setOpenSnackbar(true);
+        }
+      } catch (error) {
+        setSnackbarMessage("خطأ في الاتصال بالخادم.");
+        setOpenSnackbar(true);
+      }
     } else {
       setSnackbarMessage("يجب تحديد قيمة للنطاق (radius) بشكل صحيح.");
       setOpenSnackbar(true);
@@ -90,13 +118,21 @@ const Locations = () => {
     setOpenSnackbar(false);
   };
 
-  const handleRefreshLocations = () => {
-    setLocations([...locations]);
-  };
-
-  const handleDeleteLocation = (index) => {
-    const updatedLocations = locations.filter((_, i) => i !== index);
-    setLocations(updatedLocations);
+  const handleDeleteLocation = async (id) => {
+    try {
+      const response = await fetch(`https://shrouded-harbor-25880-c6a9ab9411a9.herokuapp.com/api/locations/${id}`, {
+        method: "DELETE",
+      });
+      if (response.ok) {
+        fetchLocations();
+      } else {
+        setSnackbarMessage("خطأ في حذف الموقع.");
+        setOpenSnackbar(true);
+      }
+    } catch (error) {
+      setSnackbarMessage("خطأ في الاتصال بالخادم.");
+      setOpenSnackbar(true);
+    }
   };
 
   return (
@@ -119,7 +155,7 @@ const Locations = () => {
           boxShadow: 2,
           borderRadius: "50%",
         }}
-        onClick={handleRefreshLocations}
+        onClick={fetchLocations}
       >
         <RefreshIcon />
       </IconButton>
@@ -316,3 +352,4 @@ const Locations = () => {
 };
 
 export default Locations;
+
