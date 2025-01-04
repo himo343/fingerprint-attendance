@@ -13,6 +13,7 @@ import {
 import RefreshIcon from "@mui/icons-material/Refresh";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { GoogleMap, LoadScript, Marker, Circle } from "@react-google-maps/api";
+import { fetchLocations, addLocation, deleteLocation } from "../Api/locationApi"; // استيراد الدوال من API
 
 const mapContainerStyle = {
   height: "400px",
@@ -38,27 +39,29 @@ const Locations = () => {
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
 
+  // جلب المواقع عند تحميل الصفحة
   useEffect(() => {
-    fetchLocations();
+    const loadLocations = async () => {
+      try {
+        const data = await fetchLocations();
+        setLocations(data);
+      } catch (error) {
+        setSnackbarMessage("خطأ في جلب المواقع.");
+        setOpenSnackbar(true);
+      }
+    };
+
+    loadLocations();
   }, []);
 
-  const fetchLocations = async () => {
-    try {
-      const response = await fetch("https://shrouded-harbor-25880-c6a9ab9411a9.herokuapp.com/api/locations");
-      const data = await response.json();
-      setLocations(data);
-    } catch (error) {
-      setSnackbarMessage("خطأ في جلب المواقع.");
-      setOpenSnackbar(true);
-    }
-  };
-
+  // تغيير القيم في النموذج
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     const newValue = name === "radius" ? parseInt(value) || 1000 : value;
     setFormData({ ...formData, [name]: newValue });
   };
 
+  // إضافة موقع جديد
   const handleAddLocation = async () => {
     if (
       formData.name &&
@@ -72,29 +75,19 @@ const Locations = () => {
       formData.radius > 0
     ) {
       try {
-        const response = await fetch("https://shrouded-harbor-25880-c6a9ab9411a9.herokuapp.com/api/locations", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(formData),
+        await addLocation(formData);
+        const updatedLocations = await fetchLocations();
+        setLocations(updatedLocations);
+        setFormData({
+          name: "",
+          address: "",
+          city: "",
+          latitude: defaultCenter.lat,
+          longitude: defaultCenter.lng,
+          radius: 1000,
         });
-        if (response.ok) {
-          fetchLocations();
-          setFormData({
-            name: "",
-            address: "",
-            city: "",
-            latitude: defaultCenter.lat,
-            longitude: defaultCenter.lng,
-            radius: 1000,
-          });
-        } else {
-          setSnackbarMessage("خطأ في إضافة الموقع.");
-          setOpenSnackbar(true);
-        }
       } catch (error) {
-        setSnackbarMessage("خطأ في الاتصال بالخادم.");
+        setSnackbarMessage("خطأ في إضافة الموقع.");
         setOpenSnackbar(true);
       }
     } else {
@@ -103,6 +96,7 @@ const Locations = () => {
     }
   };
 
+  // النقر على الخريطة لتحديد الإحداثيات
   const handleMapClick = (e) => {
     const { latLng } = e;
     const lat = latLng.lat();
@@ -114,34 +108,26 @@ const Locations = () => {
     });
   };
 
+  // إغلاق الإشعار
   const handleCloseSnackbar = () => {
     setOpenSnackbar(false);
   };
 
+  // حذف موقع
   const handleDeleteLocation = async (id) => {
     try {
-      const response = await fetch(`https://shrouded-harbor-25880-c6a9ab9411a9.herokuapp.com/api/locations/${id}`, {
-        method: "DELETE",
-      });
-      if (response.ok) {
-        fetchLocations();
-      } else {
-        setSnackbarMessage("خطأ في حذف الموقع.");
-        setOpenSnackbar(true);
-      }
+      await deleteLocation(id);
+      const updatedLocations = await fetchLocations();
+      setLocations(updatedLocations);
     } catch (error) {
-      setSnackbarMessage("خطأ في الاتصال بالخادم.");
+      setSnackbarMessage("خطأ في حذف الموقع.");
       setOpenSnackbar(true);
     }
   };
 
   return (
     <Box sx={{ padding: "20px", background: "#F7F9FC", minHeight: "100vh", textAlign: "right" }}>
-      <Typography
-        variant="h4"
-        gutterBottom
-        sx={{ color: "#001F3F", fontWeight: "bold" }}
-      >
+      <Typography variant="h4" gutterBottom sx={{ color: "#001F3F", fontWeight: "bold" }}>
         إدارة المواقع
       </Typography>
 
@@ -150,7 +136,7 @@ const Locations = () => {
         sx={{
           position: "absolute",
           top: "20px",
-          left: "20px", // تغيير من right إلى left
+          left: "20px",
           backgroundColor: "#fff",
           boxShadow: 2,
           borderRadius: "50%",
@@ -160,15 +146,8 @@ const Locations = () => {
         <RefreshIcon />
       </IconButton>
 
-      <Paper
-        elevation={3}
-        sx={{ padding: "20px", borderRadius: "16px", marginBottom: "20px", textAlign: "right" }}
-      >
-        <Typography
-          variant="h6"
-          gutterBottom
-          sx={{ color: "#001F3F", marginBottom: "10px" }}
-        >
+      <Paper elevation={3} sx={{ padding: "20px", borderRadius: "16px", marginBottom: "20px", textAlign: "right" }}>
+        <Typography variant="h6" gutterBottom sx={{ color: "#001F3F", marginBottom: "10px" }}>
           إضافة موقع جديد
         </Typography>
         <Grid container spacing={2}>
@@ -230,9 +209,7 @@ const Locations = () => {
               zoom={10}
               onClick={handleMapClick}
             >
-              <Marker
-                position={{ lat: formData.latitude, lng: formData.longitude }}
-              />
+              <Marker position={{ lat: formData.latitude, lng: formData.longitude }} />
               <Circle
                 center={{ lat: formData.latitude, lng: formData.longitude }}
                 radius={formData.radius}
@@ -257,11 +234,7 @@ const Locations = () => {
         </Button>
       </Paper>
 
-      <Typography
-        variant="h6"
-        gutterBottom
-        sx={{ color: "#001F3F", marginBottom: "10px" }}
-      >
+      <Typography variant="h6" gutterBottom sx={{ color: "#001F3F", marginBottom: "10px" }}>
         المواقع المسجلة
       </Typography>
 
@@ -272,55 +245,26 @@ const Locations = () => {
               <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "right" }}>
                 <thead>
                   <tr>
-                    <th style={{ padding: "10px", border: "1px solid #ddd" }}>
-                      اسم الموقع
-                    </th>
-                    <th style={{ padding: "10px", border: "1px solid #ddd" }}>
-                      العنوان
-                    </th>
-                    <th style={{ padding: "10px", border: "1px solid #ddd" }}>
-                      المدينة
-                    </th>
-                    <th style={{ padding: "10px", border: "1px solid #ddd" }}>
-                      الإحداثيات
-                    </th>
-                    <th style={{ padding: "10px", border: "1px solid #ddd" }}>
-                      النطاق
-                    </th>
-                    <th style={{ padding: "10px", border: "1px solid #ddd" }}>
-                      تاريخ الإنشاء
-                    </th>
-                    <th style={{ padding: "10px", border: "1px solid #ddd" }}>
-                      حذف
-                    </th>
+                    <th style={{ padding: "10px", border: "1px solid #ddd" }}>اسم الموقع</th>
+                    <th style={{ padding: "10px", border: "1px solid #ddd" }}>العنوان</th>
+                    <th style={{ padding: "10px", border: "1px solid #ddd" }}>المدينة</th>
+                    <th style={{ padding: "10px", border: "1px solid #ddd" }}>الإحداثيات</th>
+                    <th style={{ padding: "10px", border: "1px solid #ddd" }}>النطاق</th>
+                    <th style={{ padding: "10px", border: "1px solid #ddd" }}>تاريخ الإنشاء</th>
+                    <th style={{ padding: "10px", border: "1px solid #ddd" }}>حذف</th>
                   </tr>
                 </thead>
                 <tbody>
                   {locations.map((location, index) => (
                     <tr key={index}>
+                      <td style={{ padding: "10px", border: "1px solid #ddd" }}>{location.name}</td>
+                      <td style={{ padding: "10px", border: "1px solid #ddd" }}>{location.address}</td>
+                      <td style={{ padding: "10px", border: "1px solid #ddd" }}>{location.city}</td>
+                      <td style={{ padding: "10px", border: "1px solid #ddd" }}>{location.latitude}, {location.longitude}</td>
+                      <td style={{ padding: "10px", border: "1px solid #ddd" }}>{location.radius}</td>
+                      <td style={{ padding: "10px", border: "1px solid #ddd" }}>{location.createdAt}</td>
                       <td style={{ padding: "10px", border: "1px solid #ddd" }}>
-                        {location.name}
-                      </td>
-                      <td style={{ padding: "10px", border: "1px solid #ddd" }}>
-                        {location.address}
-                      </td>
-                      <td style={{ padding: "10px", border: "1px solid #ddd" }}>
-                        {location.city}
-                      </td>
-                      <td style={{ padding: "10px", border: "1px solid #ddd" }}>
-                        {location.latitude}, {location.longitude}
-                      </td>
-                      <td style={{ padding: "10px", border: "1px solid #ddd" }}>
-                        {location.radius}
-                      </td>
-                      <td style={{ padding: "10px", border: "1px solid #ddd" }}>
-                        {location.createdAt}
-                      </td>
-                      <td style={{ padding: "10px", border: "1px solid #ddd" }}>
-                        <IconButton
-                          color="secondary"
-                          onClick={() => handleDeleteLocation(index)}
-                        >
+                        <IconButton color="secondary" onClick={() => handleDeleteLocation(location._id)}>
                           <DeleteIcon />
                         </IconButton>
                       </td>
@@ -331,10 +275,7 @@ const Locations = () => {
             </Grid>
           ) : (
             <Grid item xs={12}>
-              <Typography
-                variant="body1"
-                sx={{ textAlign: "center", color: "#999" }}
-              >
+              <Typography variant="body1" sx={{ textAlign: "center", color: "#999" }}>
                 لا توجد مواقع مسجلة بعد.
               </Typography>
             </Grid>
@@ -352,4 +293,3 @@ const Locations = () => {
 };
 
 export default Locations;
-

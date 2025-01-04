@@ -8,6 +8,7 @@ import {
   Paper,
 } from "@mui/material";
 import logo from "../assets/logo.png";
+import { login } from "../Api/authApi"; // استيراد دالة تسجيل الدخول من API
 
 const Login = ({ setIsLoggedIn }) => {
   const [username, setUsername] = useState("");
@@ -16,31 +17,12 @@ const Login = ({ setIsLoggedIn }) => {
 
   const handleLogin = async () => {
     try {
-      // إرسال طلب تسجيل الدخول
-      const response = await fetch("https://shrouded-harbor-25880-c6a9ab9411a9.herokuapp.com/api/admin/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          Aname: username,
-          password: password,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        // حفظ التوكن في التخزين المحلي
-        localStorage.setItem("authToken", data.token);
-        setIsLoggedIn(true);
-        navigate("/dashboard");
-      } else {
-        alert("بيانات تسجيل الدخول غير صحيحة!");
-      }
+      const token = await login(username, password); // استخدام دالة تسجيل الدخول
+      localStorage.setItem("authToken", token); // حفظ التوكن في التخزين المحلي
+      setIsLoggedIn(true);
+      navigate("/dashboard");
     } catch (error) {
-      console.error("خطأ أثناء تسجيل الدخول:", error);
-      alert("No internet connection");
+      alert(error.message || "No internet connection");
     }
   };
 
@@ -127,17 +109,16 @@ const Login = ({ setIsLoggedIn }) => {
           تسجيل الدخول
         </Button>
         <Typography
-  variant="body2"
-  align="center"
-  sx={{
-    marginTop: "20px",
-    color: "#777",
-    "& a": { color: "#3A6D8C", textDecoration: "none" },
-  }}
->
-  <a href="/change-password">تغيير كلمة المرور</a>
-</Typography>
-
+          variant="body2"
+          align="center"
+          sx={{
+            marginTop: "20px",
+            color: "#777",
+            "& a": { color: "#3A6D8C", textDecoration: "none" },
+          }}
+        >
+          <a href="/change-password">تغيير كلمة المرور</a>
+        </Typography>
         <Typography
           variant="body2"
           align="center"

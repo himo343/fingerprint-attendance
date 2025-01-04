@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react"; 
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -23,6 +23,12 @@ import {
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
+import {
+  fetchSchedules,
+  addSchedule,
+  updateSchedule,
+  deleteSchedule, // تأكد من استيرادها
+} from "../Api/workScheduleApi";
 
 const WorkSchedule = () => {
   const [schedules, setSchedules] = useState([]);
@@ -46,24 +52,18 @@ const WorkSchedule = () => {
     "Saturday",
   ];
 
-  // جلب نماذج الدوام من API
+  // جلب جداول العمل عند تحميل الصفحة
   useEffect(() => {
-    const fetchSchedules = async () => {
+    const loadSchedules = async () => {
       try {
-        const response = await fetch(
-          "https://shrouded-harbor-25880-c6a9ab9411a9.herokuapp.com/api/shifts"
-        );
-        if (response.ok) {
-          const data = await response.json();
-          setSchedules(data);
-        } else {
-          console.error("Error fetching schedules:", response.status);
-        }
+        const data = await fetchSchedules();
+        setSchedules(data);
       } catch (error) {
-        console.error("Error fetching schedules:", error);
+        setErrorMessage("خطأ في جلب جداول العمل.");
       }
     };
-    fetchSchedules();
+
+    loadSchedules();
   }, []);
 
   // فتح نافذة إضافة/تعديل الجدول
@@ -80,7 +80,7 @@ const WorkSchedule = () => {
       setNewSchedule({ shiftname: "", startTime: "", endTime: "", days: [] });
       setEditingSchedule(null);
     }
-    setErrorMessage(""); // إعادة تعيين الرسائل عند فتح الحوار
+    setErrorMessage("");
     setOpenDialog(true);
   };
 
@@ -106,51 +106,37 @@ const WorkSchedule = () => {
       return;
     }
 
-    const url = editingSchedule
-      ? `https://shrouded-harbor-25880-c6a9ab9411a9.herokuapp.com/api/shifts/${editingSchedule._id}`
-      : "https://shrouded-harbor-25880-c6a9ab9411a9.herokuapp.com/api/shifts";
-    const method = editingSchedule ? "PUT" : "POST";
-
     try {
-      const response = await fetch(url, {
-        method,
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(newSchedule),
-      });
-      if (response.ok) {
-        const updatedSchedules = await response.json();
-        setSchedules(updatedSchedules);
-        handleDialogClose();
+      const scheduleData = {
+        ...newSchedule,
+        startTime: newSchedule.startTime, // إرسالها كنص
+        endTime: newSchedule.endTime, // إرسالها كنص
+      };
+
+      console.log("Data to be sent:", scheduleData); // طباعة البيانات قبل الإرسال
+
+      let updatedSchedules;
+      if (editingSchedule) {
+        updatedSchedules = await updateSchedule(editingSchedule._id, scheduleData);
       } else {
-        console.error("Error saving schedule:", response.status);
-        setErrorMessage("حدث خطأ أثناء حفظ الجدول.");
+        updatedSchedules = await addSchedule(scheduleData);
       }
+      setSchedules(updatedSchedules);
+      handleDialogClose();
     } catch (error) {
-      console.error("Error:", error);
-      setErrorMessage("حدث خطأ أثناء الاتصال بالخادم.");
+      console.error("Error saving schedule:", error); // طباعة الخطأ
+      setErrorMessage(error.message || "حدث خطأ أثناء حفظ الجدول.");
     }
   };
 
   // حذف الجدول
   const handleDeleteSchedule = async (id) => {
     try {
-      const response = await fetch(
-        `https://shrouded-harbor-25880-c6a9ab9411a9.herokuapp.com/api/shifts/${id}`,
-        {
-          method: "DELETE",
-        }
-      );
-      if (response.ok) {
-        setSchedules(schedules.filter((schedule) => schedule._id !== id));
-      } else {
-        console.error("Error deleting schedule:", response.status);
-        setErrorMessage("حدث خطأ أثناء حذف الجدول.");
-      }
+      await deleteSchedule(id);
+      setSchedules(schedules.filter((schedule) => schedule._id !== id));
     } catch (error) {
-      console.error("Error:", error);
-      setErrorMessage("حدث خطأ أثناء الاتصال بالخادم.");
+      console.error("Error deleting schedule:", error); // طباعة الخطأ
+      setErrorMessage(error.message || "حدث خطأ أثناء حذف الجدول.");
     }
   };
 
@@ -260,12 +246,10 @@ const WorkSchedule = () => {
               <TextField
                 label="وقت البدء"
                 name="startTime"
-                type="time"
                 value={newSchedule.startTime}
                 onChange={handleChange}
                 fullWidth
                 variant="outlined"
-                InputLabelProps={{ shrink: true }}
                 error={!newSchedule.startTime}
                 helperText={!newSchedule.startTime ? "يرجى إدخال وقت البدء" : ""}
                 sx={{ textAlign: "right" }}
@@ -275,12 +259,10 @@ const WorkSchedule = () => {
               <TextField
                 label="وقت الانتهاء"
                 name="endTime"
-                type="time"
                 value={newSchedule.endTime}
                 onChange={handleChange}
                 fullWidth
                 variant="outlined"
-                InputLabelProps={{ shrink: true }}
                 error={!newSchedule.endTime}
                 helperText={!newSchedule.endTime ? "يرجى إدخال وقت الانتهاء" : ""}
                 sx={{ textAlign: "right" }}

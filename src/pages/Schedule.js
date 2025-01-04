@@ -3,21 +3,29 @@ import { Box, Typography, TextField, Button, MenuItem, Select, FormControl, Inpu
 
 function Schedule() {
   const [schedule, setSchedule] = useState({ employee: "", shift: "", date: "" });
+  const [error, setError] = useState("");
 
   const handleInputChange = (e) => {
     setSchedule({ ...schedule, [e.target.name]: e.target.value });
   };
 
   const handleAddSchedule = () => {
+    if (!schedule.employee || !schedule.shift || !schedule.date) {
+      setError("يرجى ملء جميع الحقول");
+      return;
+    }
+
     console.log("جدول العمل تم إضافته", schedule);
     setSchedule({ employee: "", shift: "", date: "" });
+    setError("");
   };
 
   return (
-    <Box p={3} sx={{ direction: "rtl", textAlign: "right" }}> {/* إضافة direction: "rtl" */}
+    <Box p={3} sx={{ direction: "rtl", textAlign: "right" }}>
       <Typography variant="h4" gutterBottom>جدولة العمل</Typography>
 
-      {/* نموذج إضافة جدول العمل */}
+      {error && <Typography color="error">{error}</Typography>}
+
       <TextField
         label="اسم الموظف"
         name="employee"
@@ -29,7 +37,7 @@ function Schedule() {
         sx={{ textAlign: "right" }}
       />
       <FormControl fullWidth margin="normal">
-        <InputLabel sx={{ textAlign: "right" }}>الفتره</InputLabel> {/* تعديل محاذاة النص */}
+        <InputLabel sx={{ textAlign: "right" }}>الفتره</InputLabel>
         <Select
           name="shift"
           value={schedule.shift}

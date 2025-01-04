@@ -22,11 +22,14 @@ import {
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
-import axios from "axios";
-
-const API_URL = "https://shrouded-harbor-25880-c6a9ab9411a9.herokuapp.com/api/employees";
-const WORK_SCHEDULES_URL =  "https://shrouded-harbor-25880-c6a9ab9411a9.herokuapp.com/api/shifts";
-const LOCATIONS_URL = "https://shrouded-harbor-25880-c6a9ab9411a9.herokuapp.com/api/locations";
+import {
+  fetchEmployees,
+  fetchWorkSchedules,
+  fetchLocations,
+  addEmployee,
+  updateEmployee,
+  deleteEmployee,
+} from "../Api/employeeApi"; // استيراد الدوال من API
 
 const EmployeeManagement = () => {
   const [employees, setEmployees] = useState([]);
@@ -46,39 +49,25 @@ const EmployeeManagement = () => {
   const [selectedEmployeeIndex, setSelectedEmployeeIndex] = useState(null);
   const [snackbar, setSnackbar] = useState({ open: false, message: "" });
 
-  // Fetch employees from the API
+  // جلب البيانات عند تحميل الصفحة
   useEffect(() => {
-    fetchEmployees();
-    fetchWorkSchedules();
-    fetchLocations();
+    const loadData = async () => {
+      try {
+        const employeesData = await fetchEmployees();
+        const schedulesData = await fetchWorkSchedules();
+        const locationsData = await fetchLocations();
+        setEmployees(employeesData);
+        setWorkSchedules(schedulesData);
+        setLocations(locationsData);
+      } catch (error) {
+        setSnackbar({ open: true, message: "فشل في جلب البيانات!" });
+      }
+    };
+
+    loadData();
   }, []);
 
-  const fetchEmployees = async () => {
-    try {
-      const response = await axios.get(API_URL);
-      setEmployees(response.data);
-    } catch (error) {
-      console.error("Error fetching employees:", error);
-    }
-  };
-
-  const fetchWorkSchedules = async () => {
-    try {
-      const response = await axios.get(WORK_SCHEDULES_URL);
-      setWorkSchedules(response.data);
-    } catch (error) {
-      console.error("Error fetching work schedules:", error);
-    }
-  };
-
-  const fetchLocations = async () => {
-    try {
-      const response = await axios.get(LOCATIONS_URL);
-      setLocations(response.data);
-    } catch (error) {
-      console.error("Error fetching locations:", error);
-    }
-  };
+  // تعديل موظف
   const handleEditEmployee = (index) => {
     const selectedEmployee = employees[index];
     setEmployeeData({
@@ -86,7 +75,7 @@ const EmployeeManagement = () => {
       phone: selectedEmployee.phone,
       email: selectedEmployee.email,
       department: selectedEmployee.department,
-      dateofbirth: new Date(selectedEmployee.dateofbirth).toISOString().split("T")[0], // صيغة التاريخ
+      dateofbirth: new Date(selectedEmployee.dateofbirth).toISOString().split("T")[0],
       salary: selectedEmployee.salary,
       workScheduleId: selectedEmployee.workScheduleId || "",
       locationId: selectedEmployee.locationId || "",
@@ -94,49 +83,52 @@ const EmployeeManagement = () => {
     setEditMode(true);
     setSelectedEmployeeIndex(index);
   };
-  
+
+  // حذف موظف
   const handleDeleteEmployee = async (index) => {
     if (window.confirm("هل تريد بالتأكيد حذف هذا الموظف؟")) {
       try {
         const employeeId = employees[index]._id;
-        await axios.delete(`${API_URL}/${employeeId}`);
+        await deleteEmployee(employeeId);
         const updatedEmployees = employees.filter((_, i) => i !== index);
         setEmployees(updatedEmployees);
         setSnackbar({ open: true, message: "تم حذف الموظف بنجاح!" });
       } catch (error) {
-        console.error("Error deleting employee:", error);
         setSnackbar({ open: true, message: "حدث خطأ أثناء حذف الموظف!" });
       }
     }
   };
+
+  // تغيير القيم في النموذج
   const handleInputChange = (event) => {
     const { name, value } = event.target;
     setEmployeeData({ ...employeeData, [name]: value });
   };
 
+  // حفظ الموظف (إضافة أو تعديل)
   const handleSaveEmployee = async (event) => {
     event.preventDefault();
     if (!validateInputs()) return;
 
     try {
       if (editMode) {
-        const response = await axios.put(`${API_URL}/${employees[selectedEmployeeIndex]._id}`, employeeData);
+        const updatedEmployee = await updateEmployee(employees[selectedEmployeeIndex]._id, employeeData);
         const updatedEmployees = [...employees];
-        updatedEmployees[selectedEmployeeIndex] = response.data;
+        updatedEmployees[selectedEmployeeIndex] = updatedEmployee;
         setEmployees(updatedEmployees);
         setSnackbar({ open: true, message: "تم تعديل بيانات الموظف بنجاح!" });
       } else {
-        const response = await axios.post(API_URL, employeeData);
-        setEmployees([...employees, response.data]);
+        const newEmployee = await addEmployee(employeeData);
+        setEmployees([...employees, newEmployee]);
         setSnackbar({ open: true, message: "تم إضافة الموظف بنجاح!" });
       }
       resetForm();
     } catch (error) {
-      console.error("Error saving employee:", error);
       setSnackbar({ open: true, message: "حدث خطأ أثناء حفظ البيانات!" });
     }
   };
 
+  // إعادة تعيين النموذج
   const resetForm = () => {
     setEmployeeData({
       fullname: "",
@@ -152,6 +144,7 @@ const EmployeeManagement = () => {
     setSelectedEmployeeIndex(null);
   };
 
+  // التحقق من صحة المدخلات
   const validateInputs = () => {
     // نفس كود التحقق السابق
     return true;
@@ -161,6 +154,7 @@ const EmployeeManagement = () => {
     <Box sx={{ padding: "30px", backgroundColor: "#f5f5f5", minHeight: "100vh", textAlign: "right" }}>
       <Typography variant="h4" gutterBottom sx={{ textAlign: "center", color: "#3A6D8C" }}>إدارة الموظفين</Typography>
 
+      {/* النموذج */}
       <Paper sx={{ padding: "20px", marginBottom: "20px", backgroundColor: "#ffffff", borderRadius: "8px", boxShadow: 2, textAlign: "right" }}>
         <Typography variant="h6" sx={{ marginBottom: "20px", color: "#001F3F" }}>
           {editMode ? "تعديل بيانات الموظف" : "إضافة موظف جديد"}
@@ -186,7 +180,7 @@ const EmployeeManagement = () => {
             {/* Dropdown for Work Schedule */}
             <Grid item xs={12} sm={6}>
               <FormControl fullWidth>
-                <InputLabel id="work-schedule-label">جدول العمل</InputLabel>
+                <InputLabel id="work-schedule-label">جدول الدوام</InputLabel>
                 <Select
                   labelId="work-schedule-label"
                   name="workScheduleId"
@@ -232,7 +226,7 @@ const EmployeeManagement = () => {
         </form>
       </Paper>
 
-      {/* جدول الموظفين كما هو */}
+      {/* جدول الموظفين */}
       <TableContainer component={Paper} sx={{ boxShadow: 3 }}>
         <Table>
           <TableHead sx={{ backgroundColor: "#3A6D8C" }}>
@@ -262,7 +256,7 @@ const EmployeeManagement = () => {
         </Table>
       </TableContainer>
 
-      {/* Snackbar for notifications */}
+      {/* إشعارات */}
       <Snackbar
         open={snackbar.open}
         autoHideDuration={3000}

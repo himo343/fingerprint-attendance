@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -21,19 +21,30 @@ import {
 } from "@mui/material";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import DownloadIcon from "@mui/icons-material/Download";
-import RefreshIcon from "@mui/icons-material/Refresh"; // إضافة أيقونة التحديث
+import RefreshIcon from "@mui/icons-material/Refresh";
+import { fetchAttendanceData, downloadAttendanceReport } from "../Api/attendanceApi";
 
 function Attendance() {
-  const [attendanceData] = useState([
-    { id: 1, employee: "أحمد علي", date: "2024-11-15", status: "حاضر" },
-    { id: 2, employee: "محمد يوسف", date: "2024-11-15", status: "غائب" },
-    { id: 3, employee: "سعاد خالد", date: "2024-11-15", status: "حاضر" },
-  ]);
-
+  const [attendanceData, setAttendanceData] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
   const [snackbar, setSnackbar] = useState({ open: false, message: "" });
 
+  // جلب بيانات الحضور عند تحميل الصفحة
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const data = await fetchAttendanceData();
+        setAttendanceData(data);
+      } catch (error) {
+        setSnackbar({ open: true, message: "فشل في جلب بيانات الحضور" });
+      }
+    };
+
+    loadData();
+  }, []);
+
+  // تصفية البيانات
   const filteredData = attendanceData.filter((item) => {
     const matchesSearch =
       item.employee.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -42,38 +53,31 @@ function Attendance() {
     return matchesSearch && matchesStatus;
   });
 
-  const handleDownload = () => {
-    const csvContent =
-      "اسم الموظف,التاريخ,الحالة\n" +
-      filteredData
-        .map((row) => `${row.employee},${row.date},${row.status}`)
-        .join("\n");
-
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = "attendance_report.csv";
-    link.click();
-
-    setSnackbar({ open: true, message: "تم تنزيل تقرير الحضور بنجاح" });
+  // تنزيل التقرير
+  const handleDownload = async () => {
+    try {
+      await downloadAttendanceReport(filteredData);
+      setSnackbar({ open: true, message: "تم تنزيل تقرير الحضور بنجاح" });
+    } catch (error) {
+      setSnackbar({ open: true, message: "فشل في تنزيل التقرير" });
+    }
   };
 
-  const handleCloseSnackbar = () => setSnackbar({ open: false, message: "" });
-
+  // تحديث الصفحة
   const handleRefresh = () => {
-    // هنا يمكنك إضافة عملية التحديث (مثل إعادة تحميل البيانات أو الصفحة)
-    window.location.reload(); // تحديث الصفحة
+    window.location.reload();
+  };
+
+  // إغلاق الـ Snackbar
+  const handleCloseSnackbar = () => {
+    setSnackbar({ ...snackbar, open: false });
   };
 
   return (
     <Box p={3} sx={{ background: "#F7F9FC", minHeight: "100vh", borderRadius: "16px", textAlign: "right" }}>
       <Grid container justifyContent="space-between" alignItems="center" direction="row-reverse" sx={{ marginBottom: "20px" }}>
         <Grid item>
-          <Typography
-            variant="h4"
-            gutterBottom
-            sx={{ color: "#001F3F", fontWeight: "bold" }}
-          >
+          <Typography variant="h4" gutterBottom sx={{ color: "#001F3F", fontWeight: "bold" }}>
             إدارة الحضور
           </Typography>
         </Grid>
@@ -85,16 +89,7 @@ function Attendance() {
       </Grid>
 
       {/* البحث والتصفية */}
-      <Paper
-        elevation={3}
-        sx={{
-          padding: "20px",
-          borderRadius: "16px",
-          marginBottom: "20px",
-          background: "#ffffff",
-          boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
-        }}
-      >
+      <Paper elevation={3} sx={{ padding: "20px", borderRadius: "16px", marginBottom: "20px", background: "#ffffff", boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)" }}>
         <Grid container spacing={2}>
           <Grid item xs={12} sm={6}>
             <TextField
