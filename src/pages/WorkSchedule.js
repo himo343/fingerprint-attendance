@@ -27,7 +27,7 @@ import {
   fetchSchedules,
   addSchedule,
   updateSchedule,
-  deleteSchedule, // تأكد من استيرادها
+  deleteSchedule,
 } from "../Api/workScheduleApi";
 
 const WorkSchedule = () => {
@@ -100,21 +100,21 @@ const WorkSchedule = () => {
     return true;
   };
 
-  // إضافة/تعديل الجدول
   const handleScheduleSubmit = async () => {
     if (!validateSchedule()) {
       return;
     }
-
+  
     try {
+      // تحويل startTime و endTime إلى تنسيق Date
       const scheduleData = {
         ...newSchedule,
-        startTime: newSchedule.startTime, // إرسالها كنص
-        endTime: newSchedule.endTime, // إرسالها كنص
+        startTime: new Date(`1970-01-01T${newSchedule.startTime}:00`), // تحويل النص إلى تاريخ
+        endTime: new Date(`1970-01-01T${newSchedule.endTime}:00`),     // تحويل النص إلى تاريخ
       };
-
+  
       console.log("Data to be sent:", scheduleData); // طباعة البيانات قبل الإرسال
-
+  
       let updatedSchedules;
       if (editingSchedule) {
         updatedSchedules = await updateSchedule(editingSchedule._id, scheduleData);

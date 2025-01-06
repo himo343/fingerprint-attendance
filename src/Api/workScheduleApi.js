@@ -1,4 +1,3 @@
-// src/api/workScheduleApi.js
 const API_URL = "https://shrouded-harbor-25880-c6a9ab9411a9.herokuapp.com/api/shifts";
 
 // جلب جميع جداول العمل
@@ -25,15 +24,15 @@ export const addSchedule = async (scheduleData) => {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(scheduleData), // تأكد من أن البيانات مرسلة بشكل صحيح
+      body: JSON.stringify(scheduleData),
     });
-    if (response.ok) {
-      const data = await response.json();
-      return data;
-    } else {
-      const errorData = await response.json(); // تحقق من رسالة الخطأ من الخادم
+
+    if (!response.ok) {
+      const errorData = await response.json();
       throw new Error(errorData.message || "Error adding schedule");
     }
+
+    return await response.json();
   } catch (error) {
     console.error("Error adding schedule:", error);
     throw error;
@@ -50,13 +49,13 @@ export const updateSchedule = async (id, scheduleData) => {
       },
       body: JSON.stringify(scheduleData),
     });
-    if (response.ok) {
-      const data = await response.json();
-      return data;
-    } else {
-      const errorData = await response.json(); // تحقق من رسالة الخطأ من الخادم
+
+    if (!response.ok) {
+      const errorData = await response.json();
       throw new Error(errorData.message || "Error updating schedule");
     }
+
+    return await response.json();
   } catch (error) {
     console.error("Error updating schedule:", error);
     throw error;
@@ -69,12 +68,13 @@ export const deleteSchedule = async (id) => {
     const response = await fetch(`${API_URL}/${id}`, {
       method: "DELETE",
     });
-    if (response.ok) {
-      return true;
-    } else {
-      const errorData = await response.json(); // تحقق من رسالة الخطأ من الخادم
+
+    if (!response.ok) {
+      const errorData = await response.json();
       throw new Error(errorData.message || "Error deleting schedule");
     }
+
+    return true;
   } catch (error) {
     console.error("Error deleting schedule:", error);
     throw error;
