@@ -40,8 +40,8 @@ const EmployeeManagement = () => {
     department: "",
     dateofbirth: "",
     salary: "",
-    workScheduleId: "",
-    locationId: "",
+    Shift_Id: "",
+    Location_Id: "",
   });
   const [workSchedules, setWorkSchedules] = useState([]);
   const [locations, setLocations] = useState([]);
@@ -72,33 +72,62 @@ const EmployeeManagement = () => {
     const selectedEmployee = employees[index];
     setEmployeeData({
       fullname: selectedEmployee.fullname,
-      phone: selectedEmployee.phone,
+      phone: selectedEmployee.phone.toString(),
       email: selectedEmployee.email,
       department: selectedEmployee.department,
       dateofbirth: new Date(selectedEmployee.dateofbirth).toISOString().split("T")[0],
-      salary: selectedEmployee.salary,
-      workScheduleId: selectedEmployee.workScheduleId || "",
-      locationId: selectedEmployee.locationId || "",
+      salary: selectedEmployee.salary.toString(),
+      Shift_Id: selectedEmployee.Shift_Id || "",
+      Location_Id: selectedEmployee.Location_Id || "",
     });
     setEditMode(true);
     setSelectedEmployeeIndex(index);
   };
 
   // حذف موظف
-  const handleDeleteEmployee = async (index) => {
-    if (window.confirm("هل تريد بالتأكيد حذف هذا الموظف؟")) {
-      try {
-        const employeeId = employees[index]._id;
-        await deleteEmployee(employeeId);
-        const updatedEmployees = employees.filter((_, i) => i !== index);
-        setEmployees(updatedEmployees);
-        setSnackbar({ open: true, message: "تم حذف الموظف بنجاح!" });
-      } catch (error) {
-        setSnackbar({ open: true, message: "حدث خطأ أثناء حذف الموظف!" });
-      }
-    }
-  };
+ 
+const handleDeleteEmployee = async (index) => {
+  // تحقق من وجود الموظف في المصفوفة
+  if (!employees[index]) {
+    console.error("Employee not found at index:", index);
+    setSnackbar({ open: true, message: "تعذر العثور على الموظف!" });
+    return;
+  }
 
+  // الحصول على employeeId
+  const employeeId = employees[index].employeeId_id;
+  console.log("Employee ID to delete:", employeeId);
+
+  // تحقق من وجود employeeId
+  if (!employeeId) {
+    console.error("Employee ID is undefined at index:", index);
+    setSnackbar({ open: true, message: "تعذر العثور على معرف الموظف!" });
+    return;
+  }
+
+  // تأكيد الحذف
+  if (window.confirm("هل تريد بالتأكيد حذف هذا الموظف؟")) {
+    try {
+      // حذف الموظف من الخادم باستخدام دالة API
+      await deleteEmployee(employeeId);
+
+      // تحديث الحالة (حذف الموظف من الواجهة)
+      const updatedEmployees = employees.filter((employeeId_, i) => i !== index);
+      console.log("Updated Employees:", updatedEmployees);
+      setEmployees(updatedEmployees);
+
+      // عرض رسالة نجاح
+      setSnackbar({ open: true, message: "تم حذف الموظف بنجاح!" });
+    } catch (error) {
+      // عرض رسالة الخطأ
+      console.error("Error deleting employee:", error.response?.data);
+      setSnackbar({
+        open: true,
+        message: error.response?.data?.message || "حدث خطأ أثناء حذف الموظف!",
+      });
+    }
+  }
+};
   // تغيير القيم في النموذج
   const handleInputChange = (event) => {
     const { name, value } = event.target;
@@ -109,25 +138,38 @@ const EmployeeManagement = () => {
   const handleSaveEmployee = async (event) => {
     event.preventDefault();
     if (!validateInputs()) return;
-
+  
     try {
+      const formattedData = {
+        fullname: employeeData.fullname,
+        phone: parseInt(employeeData.phone, 10),
+        email: employeeData.email.toUpperCase(),
+        department: employeeData.department.toLowerCase(),
+        dateofbirth: employeeData.dateofbirth,
+        salary: parseInt(employeeData.salary, 10),
+        shiftId: employeeData.Shift_Id, // تغيير Shift_Id إلى shiftId
+        locationId: employeeData.Location_Id, // تغيير Location_Id إلى locationId
+      };
+  
+      console.log("Data being sent to API:", formattedData); // تحقق من البيانات هنا
+  
       if (editMode) {
-        const updatedEmployee = await updateEmployee(employees[selectedEmployeeIndex]._id, employeeData);
+        const updatedEmployee = await updateEmployee(employees[selectedEmployeeIndex]._id, formattedData);
         const updatedEmployees = [...employees];
         updatedEmployees[selectedEmployeeIndex] = updatedEmployee;
         setEmployees(updatedEmployees);
         setSnackbar({ open: true, message: "تم تعديل بيانات الموظف بنجاح!" });
       } else {
-        const newEmployee = await addEmployee(employeeData);
+        const newEmployee = await addEmployee(formattedData);
         setEmployees([...employees, newEmployee]);
         setSnackbar({ open: true, message: "تم إضافة الموظف بنجاح!" });
       }
       resetForm();
     } catch (error) {
-      setSnackbar({ open: true, message: "حدث خطأ أثناء حفظ البيانات!" });
+      console.error("Error saving employee:", error.response?.data); // عرض رسالة الخطأ من الخادم
+      setSnackbar({ open: true, message: error.response?.data?.message || "حدث خطأ أثناء حفظ البيانات!" });
     }
   };
-
   // إعادة تعيين النموذج
   const resetForm = () => {
     setEmployeeData({
@@ -137,8 +179,8 @@ const EmployeeManagement = () => {
       department: "",
       dateofbirth: "",
       salary: "",
-      workScheduleId: "",
-      locationId: "",
+      Shift_Id: "",
+      Location_Id: "",
     });
     setEditMode(false);
     setSelectedEmployeeIndex(null);
@@ -146,7 +188,23 @@ const EmployeeManagement = () => {
 
   // التحقق من صحة المدخلات
   const validateInputs = () => {
-    // نفس كود التحقق السابق
+    const { fullname, phone, email, department, dateofbirth, salary, Shift_Id, Location_Id } = employeeData;
+
+    if (!fullname || !phone || !email || !department || !dateofbirth || !salary || !Shift_Id || !Location_Id) {
+      setSnackbar({ open: true, message: "جميع الحقول مطلوبة!" });
+      return false;
+    }
+
+    if (isNaN(phone) || phone.length !== 9) {
+      setSnackbar({ open: true, message: "رقم الهاتف يجب أن يكون 9 أرقام!" });
+      return false;
+    }
+
+    if (isNaN(salary) || salary <= 0) {
+      setSnackbar({ open: true, message: "الراتب يجب أن يكون رقمًا صحيحًا أكبر من الصفر!" });
+      return false;
+    }
+
     return true;
   };
 
@@ -166,7 +224,7 @@ const EmployeeManagement = () => {
                 <TextField
                   label={field === "dateofbirth" ? "تاريخ الميلاد" : field === "salary" ? "الراتب الأساسي" : field}
                   name={field}
-                  type={field === "dateofbirth" ? "date" : "text"}
+                  type={field === "dateofbirth" ? "date" : field === "phone" || field === "salary" ? "number" : "text"}
                   InputLabelProps={field === "dateofbirth" ? { shrink: true } : null}
                   variant="outlined"
                   fullWidth
@@ -181,17 +239,17 @@ const EmployeeManagement = () => {
             <Grid item xs={12} sm={6}>
               <FormControl fullWidth>
                 <InputLabel id="work-schedule-label">جدول الدوام</InputLabel>
-                <Select
+                  <Select
                   labelId="work-schedule-label"
-                  name="workScheduleId"
-                  value={employeeData.workScheduleId}
+                  name="Shift_Id"
+                  value={employeeData.Shift_Id}
                   onChange={handleInputChange}
                   required
                   sx={{ textAlign: "right" }}
                 >
-                  {workSchedules.map((schedule) => (
-                    <MenuItem key={schedule._id} value={schedule._id}>
-                      {schedule.name}
+                  {workSchedules.map((shift) => (
+                    <MenuItem key={shift._id} value={shift._id}>
+                      {shift.shiftname} {}
                     </MenuItem>
                   ))}
                 </Select>
@@ -203,8 +261,8 @@ const EmployeeManagement = () => {
                 <InputLabel id="location-label">الموقع</InputLabel>
                 <Select
                   labelId="location-label"
-                  name="locationId"
-                  value={employeeData.locationId}
+                  name="Location_Id"
+                  value={employeeData.Location_Id}
                   onChange={handleInputChange}
                   required
                   sx={{ textAlign: "right" }}

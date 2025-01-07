@@ -52,21 +52,19 @@ const WorkSchedule = () => {
     "Saturday",
   ];
 
-  // جلب جداول العمل عند تحميل الصفحة
   useEffect(() => {
     const loadSchedules = async () => {
       try {
         const data = await fetchSchedules();
         setSchedules(data);
       } catch (error) {
-        setErrorMessage("خطأ في جلب جداول العمل.");
+        setErrorMessage("Error fetching work schedules.");
       }
     };
 
     loadSchedules();
   }, []);
 
-  // فتح نافذة إضافة/تعديل الجدول
   const handleDialogOpen = (schedule = null) => {
     if (schedule) {
       setEditingSchedule(schedule);
@@ -84,69 +82,61 @@ const WorkSchedule = () => {
     setOpenDialog(true);
   };
 
-  // إغلاق نافذة الحوار
   const handleDialogClose = () => setOpenDialog(false);
 
-  // التحقق من صحة البيانات المدخلة
   const validateSchedule = () => {
     if (!newSchedule.shiftname || !newSchedule.startTime || !newSchedule.endTime) {
-      setErrorMessage("يرجى ملء جميع الحقول.");
+      setErrorMessage("Please fill all fields.");
       return false;
     }
     if (newSchedule.days.length === 0) {
-      setErrorMessage("يرجى تحديد أيام العمل.");
+      setErrorMessage("Please select working days.");
       return false;
     }
     return true;
   };
 
   const handleScheduleSubmit = async () => {
-    if (!validateSchedule()) {
-      return;
-    }
-  
-    try {
-      // تحويل startTime و endTime إلى تنسيق Date
-      const scheduleData = {
-        ...newSchedule,
-        startTime: new Date(`1970-01-01T${newSchedule.startTime}:00`), // تحويل النص إلى تاريخ
-        endTime: new Date(`1970-01-01T${newSchedule.endTime}:00`),     // تحويل النص إلى تاريخ
-      };
-  
-      console.log("Data to be sent:", scheduleData); // طباعة البيانات قبل الإرسال
-  
-      let updatedSchedules;
-      if (editingSchedule) {
-        updatedSchedules = await updateSchedule(editingSchedule._id, scheduleData);
-      } else {
-        updatedSchedules = await addSchedule(scheduleData);
-      }
-      setSchedules(updatedSchedules);
-      handleDialogClose();
-    } catch (error) {
-      console.error("Error saving schedule:", error); // طباعة الخطأ
-      setErrorMessage(error.message || "حدث خطأ أثناء حفظ الجدول.");
-    }
-  };
+  if (!validateSchedule()) {
+    return;
+  }
 
-  // حذف الجدول
+  try {
+    const scheduleData = {
+      ...newSchedule,
+      startTime: new Date(`1970-01-01T${newSchedule.startTime}:00Z`), // تحويل النص إلى تاريخ مع توقيت UTC
+      endTime: new Date(`1970-01-01T${newSchedule.endTime}:00Z`), // تحويل النص إلى تاريخ مع توقيت UTC
+    };
+
+    let updatedSchedules;
+    if (editingSchedule) {
+      updatedSchedules = await updateSchedule(editingSchedule._id, scheduleData);
+    } else {
+      updatedSchedules = await addSchedule(scheduleData);
+    }
+    setSchedules(updatedSchedules);
+    handleDialogClose();
+  } catch (error) {
+    console.error("Error saving schedule:", error);
+    setErrorMessage(error.message || "حدث خطأ أثناء حفظ الجدول.");
+  }
+};
+
   const handleDeleteSchedule = async (id) => {
     try {
       await deleteSchedule(id);
       setSchedules(schedules.filter((schedule) => schedule._id !== id));
     } catch (error) {
-      console.error("Error deleting schedule:", error); // طباعة الخطأ
-      setErrorMessage(error.message || "حدث خطأ أثناء حذف الجدول.");
+      console.error("Error deleting schedule:", error);
+      setErrorMessage(error.message || "Error deleting the schedule.");
     }
   };
 
-  // التعامل مع التغييرات في الحقول
   const handleChange = (e) => {
     const { name, value } = e.target;
     setNewSchedule((prev) => ({ ...prev, [name]: value }));
   };
 
-  // التعامل مع تغييرات أيام العمل
   const handleDaysChange = (day) => {
     setNewSchedule((prev) => {
       const days = prev.days.includes(day)
@@ -162,10 +152,8 @@ const WorkSchedule = () => {
         جدولة ساعات العمل
       </Typography>
 
-      {/* الرسالة التحذيرية عند وجود خطأ */}
       {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
 
-      {/* زر إضافة جدول جديد */}
       <Button
         variant="contained"
         color="primary"
@@ -175,7 +163,6 @@ const WorkSchedule = () => {
         إضافة جدول جديد
       </Button>
 
-      {/* جدول عرض الجداول الحالية */}
       <TableContainer component={Paper} sx={{ marginBottom: "20px" }}>
         <Table>
           <TableHead sx={{ backgroundColor: "#3A6D8C" }}>
@@ -224,7 +211,6 @@ const WorkSchedule = () => {
         </Table>
       </TableContainer>
 
-      {/* نافذة إضافة/تعديل الجدول */}
       <Dialog open={openDialog} onClose={handleDialogClose} fullWidth maxWidth="sm" sx={{ direction: "rtl", textAlign: "right" }}>
         <DialogTitle>{editingSchedule ? "تعديل جدول العمل" : "إضافة جدول جديد"}</DialogTitle>
         <DialogContent>
@@ -246,6 +232,7 @@ const WorkSchedule = () => {
               <TextField
                 label="وقت البدء"
                 name="startTime"
+                type="time"
                 value={newSchedule.startTime}
                 onChange={handleChange}
                 fullWidth
@@ -259,6 +246,7 @@ const WorkSchedule = () => {
               <TextField
                 label="وقت الانتهاء"
                 name="endTime"
+                type="time"
                 value={newSchedule.endTime}
                 onChange={handleChange}
                 fullWidth

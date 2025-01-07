@@ -41,7 +41,17 @@ export const fetchLocations = async () => {
 // إضافة موظف جديد
 export const addEmployee = async (employeeData) => {
   try {
-    const response = await axios.post(API_URL, employeeData);
+    const payload = {
+      fullname: employeeData.fullname,
+      phone: employeeData.phone,
+      email: employeeData.email,
+      department: employeeData.department,
+      dateofbirth: employeeData.dateofbirth,
+      salary: employeeData.salary,
+      Shift_Id: employeeData.workScheduleId, // تعديل الاسم ليتطابق مع قاعدة البيانات
+      Location_Id: employeeData.locationId,  // تعديل الاسم ليتطابق مع قاعدة البيانات
+    };
+    const response = await axios.post(API_URL, payload);
     return response.data;
   } catch (error) {
     console.error("Error adding employee:", error);
@@ -52,7 +62,17 @@ export const addEmployee = async (employeeData) => {
 // تعديل بيانات موظف
 export const updateEmployee = async (employeeId, employeeData) => {
   try {
-    const response = await axios.put(`${API_URL}/${employeeId}`, employeeData);
+    const payload = {
+      fullname: employeeData.fullname,
+      phone: employeeData.phone,
+      email: employeeData.email,
+      department: employeeData.department,
+      dateofbirth: employeeData.dateofbirth,
+      salary: employeeData.salary,
+      Shift_Id: employeeData.workScheduleId, // تعديل الاسم ليتطابق مع قاعدة البيانات
+      Location_Id: employeeData.locationId,  // تعديل الاسم ليتطابق مع قاعدة البيانات
+    };
+    const response = await axios.put(`${API_URL}/${employeeId}`, payload);
     return response.data;
   } catch (error) {
     console.error("Error updating employee:", error);
@@ -66,6 +86,6 @@ export const deleteEmployee = async (employeeId) => {
     await axios.delete(`${API_URL}/${employeeId}`);
   } catch (error) {
     console.error("Error deleting employee:", error);
-    throw error;
+    throw error; 
   }
 };
