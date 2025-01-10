@@ -14,6 +14,7 @@ import LeaveRequests from "./pages/LeaveRequests"; // استيراد صفحة ط
 import { DataProvider } from "./context/DataContext"; // استيراد DataProvider
 import ChangePassword from "./pages/ChangePassword";
 import ResetPassword from "./pages/ResetPassword";
+import Settings from "./pages/Settings";
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(() => {
@@ -44,6 +45,14 @@ function App() {
               </ProtectedRoute>
             }
           />
+           <Route
+          path="/settings"
+          element={
+            <ProtectedRoute isLoggedIn={isLoggedIn}>
+              <Settings />
+            </ProtectedRoute>
+          }
+        />
           <Route
             path="/attendance"
             element={

@@ -33,19 +33,21 @@ const Sidebar = () => {
 
   return (
     <Box
-      sx={{
-        width: "250px",
-        background: "linear-gradient(145deg, #001F3F, #3A6D8C)",
-        color: "white",
-        height: "100vh",
-        p: 2,
-        borderRadius: "16px",
-        boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
-        marginLeft: "16px", // إزاحة القائمة إلى جهة اليمين
-        position: "relative", // إضافة خاصية لضبط موقع العنصر
-        direction: "rtl", // إضافة direction: "rtl"
-      }}
-    >
+    sx={{
+      width: "250px",
+      background: "linear-gradient(145deg, #001F3F, #3A6D8C)",
+      color: "white",
+      height: "100vh",
+      p: 2,
+      borderRadius: "16px",
+      boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+      position: "fixed", // تجعل القائمة الجانبية ثابتة
+      top: 0,
+      right: 0, // إذا كنت تستخدم الاتجاه rtl
+      direction: "rtl",
+    }}
+  >
+  
       <Typography
         variant="h5"
         component="h2"

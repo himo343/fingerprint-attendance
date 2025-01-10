@@ -56,7 +56,12 @@ const WorkSchedule = () => {
     const loadSchedules = async () => {
       try {
         const data = await fetchSchedules();
-        setSchedules(data);
+        // تحقق من أن البيانات هي مصفوفة قبل تعيينها في الحالة
+        if (Array.isArray(data)) {
+          setSchedules(data);
+        } else {
+          setErrorMessage("Invalid data format received.");
+        }
       } catch (error) {
         setErrorMessage("Error fetching work schedules.");
       }
@@ -97,30 +102,30 @@ const WorkSchedule = () => {
   };
 
   const handleScheduleSubmit = async () => {
-  if (!validateSchedule()) {
-    return;
-  }
-
-  try {
-    const scheduleData = {
-      ...newSchedule,
-      startTime: new Date(`1970-01-01T${newSchedule.startTime}:00Z`), // تحويل النص إلى تاريخ مع توقيت UTC
-      endTime: new Date(`1970-01-01T${newSchedule.endTime}:00Z`), // تحويل النص إلى تاريخ مع توقيت UTC
-    };
-
-    let updatedSchedules;
-    if (editingSchedule) {
-      updatedSchedules = await updateSchedule(editingSchedule._id, scheduleData);
-    } else {
-      updatedSchedules = await addSchedule(scheduleData);
+    if (!validateSchedule()) {
+      return;
     }
-    setSchedules(updatedSchedules);
-    handleDialogClose();
-  } catch (error) {
-    console.error("Error saving schedule:", error);
-    setErrorMessage(error.message || "حدث خطأ أثناء حفظ الجدول.");
-  }
-};
+
+    try {
+      const scheduleData = {
+        ...newSchedule,
+        startTime: new Date(`1970-01-01T${newSchedule.startTime}:00Z`), // تحويل النص إلى تاريخ مع توقيت UTC
+        endTime: new Date(`1970-01-01T${newSchedule.endTime}:00Z`), // تحويل النص إلى تاريخ مع توقيت UTC
+      };
+
+      let updatedSchedules;
+      if (editingSchedule) {
+        updatedSchedules = await updateSchedule(editingSchedule._id, scheduleData);
+      } else {
+        updatedSchedules = await addSchedule(scheduleData);
+      }
+      setSchedules(updatedSchedules);
+      handleDialogClose();
+    } catch (error) {
+      console.error("Error saving schedule:", error);
+      setErrorMessage(error.message || "حدث خطأ أثناء حفظ الجدول.");
+    }
+  };
 
   const handleDeleteSchedule = async (id) => {
     try {
@@ -175,13 +180,14 @@ const WorkSchedule = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {schedules.length === 0 ? (
+            {Array.isArray(schedules) && schedules.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={5} align="center">
                   لا توجد جداول مضافة
                 </TableCell>
               </TableRow>
             ) : (
+              Array.isArray(schedules) &&
               schedules.map((schedule) => (
                 <TableRow key={schedule._id} sx={{ "&:hover": { backgroundColor: "#f1f1f1" } }}>
                   <TableCell sx={{ textAlign: "right" }}>{schedule.shiftname}</TableCell>
@@ -279,7 +285,7 @@ const WorkSchedule = () => {
             إلغاء
           </Button>
           <Button onClick={handleScheduleSubmit} color="primary">
-            حفظ
+            {editingSchedule ? "تعديل الجدول" : "إضافة الجدول"}
           </Button>
         </DialogActions>
       </Dialog>
