@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -11,29 +11,51 @@ import {
   Checkbox,
   ListItemText,
 } from "@mui/material";
+import { fetchEmployees, sendNotification } from "../Api/notificationApi"; // استيراد الدوال من ملف api.js
 
 const Notifications = () => {
   const [title, setTitle] = useState("");
   const [selectedEmployee, setSelectedEmployee] = useState([]);
   const [notificationText, setNotificationText] = useState("");
+  const [employees, setEmployees] = useState([]); // قائمة الموظفين
 
-  const employees = [
-    { id: 1, name: "محمد أحمد" },
-    { id: 2, name: "سارة علي" },
-    { id: 3, name: "خالد سعيد" },
-  ]; // قائمة الموظفين
+  // جلب الموظفين عند تحميل الصفحة
+  useEffect(() => {
+    const getEmployees = async () => {
+      const employeesList = await fetchEmployees();
+      setEmployees(employeesList);
+    };
+    getEmployees();
+  }, []);
 
-  const handleSendNotification = () => {
-    console.log("العنوان:", title);
-    console.log(
-      "إرسال إلى:",
-      selectedEmployee.length ? selectedEmployee : "الكل"
-    );
-    console.log("نص الإشعار:", notificationText);
+  // دالة لتحديد جميع الموظفين
+  const handleSelectAll = () => {
+    if (selectedEmployee.length === employees.length) {
+      // إذا تم تحديد الكل بالفعل، قم بإلغاء التحديد
+      setSelectedEmployee([]);
+    } else {
+      // إذا لم يتم تحديد الكل، قم بتحديد جميع الموظفين
+      setSelectedEmployee(employees);
+    }
+  };
 
-    setTitle("");
-    setSelectedEmployee([]);
-    setNotificationText("");
+  const handleSendNotification = async () => {
+    const notificationData = {
+      title: title,
+      message: notificationText,
+      type: selectedEmployee.length > 0 ? "specific" : "all",
+      recipients: selectedEmployee,
+    };
+
+    try {
+      await sendNotification(notificationData);
+      console.log("Notification sent successfully!");
+      setTitle("");
+      setSelectedEmployee([]);
+      setNotificationText("");
+    } catch (error) {
+      console.error("Failed to send notification:", error);
+    }
   };
 
   return (
@@ -85,7 +107,26 @@ const Notifications = () => {
 
         {/* تحديد الموظف */}
         <FormControl fullWidth margin="normal">
-          <InputLabel id="employee-label">إرسال إلى</InputLabel>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: "10px",
+            }}
+          >
+            <InputLabel id="employee-label">إرسال إلى</InputLabel>
+            <Button
+              onClick={handleSelectAll}
+              variant="outlined"
+              size="small"
+              sx={{ textTransform: "none" }}
+            >
+              {selectedEmployee.length === employees.length
+                ? "إلغاء تحديد الكل"
+                : "تحديد الكل"}
+            </Button>
+          </Box>
           <Select
             labelId="employee-label"
             multiple
@@ -95,12 +136,12 @@ const Notifications = () => {
               selected.length ? selected.join(", ") : "إرسال إلى الكل"
             }
           >
-            {employees.map((employee) => (
-              <MenuItem key={employee.id} value={employee.name}>
+            {employees.map((employee, index) => (
+              <MenuItem key={index} value={employee}>
                 <Checkbox
-                  checked={selectedEmployee.indexOf(employee.name) > -1}
+                  checked={selectedEmployee.indexOf(employee) > -1}
                 />
-                <ListItemText primary={employee.name} />
+                <ListItemText primary={employee} />
               </MenuItem>
             ))}
           </Select>
