@@ -1,4 +1,3 @@
-// api.js
 import axios from 'axios';
 
 const BASE_URL = 'https://shrouded-harbor-25880-c6a9ab9411a9.herokuapp.com/api';
@@ -7,20 +6,27 @@ const BASE_URL = 'https://shrouded-harbor-25880-c6a9ab9411a9.herokuapp.com/api';
 export const fetchEmployees = async () => {
   try {
     const response = await axios.get(`${BASE_URL}/employees`);
-    return response.data.map(employee => employee.fullname); // نأخذ فقط الـ fullname
+    console.log("Employees data:", response.data); // تحقق من البيانات هنا
+    return response.data.map(employee => ({
+      fullname: employee.fullname,
+      employeeId: employee.employeeId, // إضافة employeeId
+    }));
   } catch (error) {
     console.error('Error fetching employees:', error);
     return [];
   }
 };
 
-// دالة لإرسال الإشعار
 export const sendNotification = async (notificationData) => {
   try {
-    const response = await axios.post(`${BASE_URL}/notification/sendNotificationAdmin`, notificationData);
+    console.log("Sending notification data:", notificationData); // تحقق من البيانات هنا
+    const headers = {
+      Authorization: `Bearer ${localStorage.getItem('token')}`, // مثال على استخدام token
+    };
+    const response = await axios.post(`${BASE_URL}/notification/sendNotificationAdmin`, notificationData, { headers });
     return response.data;
   } catch (error) {
     console.error('Error sending notification:', error);
-    throw error;
+    throw new Error(error.response?.data?.message || "حدث خطأ أثناء إرسال الإشعار!");
   }
 };

@@ -1,4 +1,3 @@
-// src/api/employeeApi.js
 import axios from "axios";
 
 const API_URL = "https://shrouded-harbor-25880-c6a9ab9411a9.herokuapp.com/api/employees";
@@ -48,8 +47,8 @@ export const addEmployee = async (employeeData) => {
       department: employeeData.department,
       dateofbirth: employeeData.dateofbirth,
       salary: employeeData.salary,
-      Shift_Id: employeeData.workScheduleId, // تعديل الاسم ليتطابق مع قاعدة البيانات
-      Location_Id: employeeData.locationId,  // تعديل الاسم ليتطابق مع قاعدة البيانات
+      Shift_Id: employeeData.Shift_Id, // استخدام Shift_Id
+      Location_Id: employeeData.Location_Id, // استخدام Location_Id
     };
     const response = await axios.post(API_URL, payload);
     return response.data;
@@ -69,8 +68,8 @@ export const updateEmployee = async (employeeId, employeeData) => {
       department: employeeData.department,
       dateofbirth: employeeData.dateofbirth,
       salary: employeeData.salary,
-      Shift_Id: employeeData.workScheduleId, // تعديل الاسم ليتطابق مع قاعدة البيانات
-      Location_Id: employeeData.locationId,  // تعديل الاسم ليتطابق مع قاعدة البيانات
+      Shift_Id: employeeData.Shift_Id, // استخدام Shift_Id
+      Location_Id: employeeData.Location_Id, // استخدام Location_Id
     };
     const response = await axios.put(`${API_URL}/${employeeId}`, payload);
     return response.data;
@@ -86,6 +85,6 @@ export const deleteEmployee = async (employeeId) => {
     await axios.delete(`${API_URL}/${employeeId}`);
   } catch (error) {
     console.error("Error deleting employee:", error);
-    throw error; 
+    throw error;
   }
 };

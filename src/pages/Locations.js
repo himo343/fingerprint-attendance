@@ -9,11 +9,16 @@ import {
   Snackbar,
   Alert,
   Button,
+  CircularProgress,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from "@mui/material";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { GoogleMap, LoadScript, Marker, Circle } from "@react-google-maps/api";
-import { fetchLocations, addLocation, deleteLocation } from "../Api/locationApi"; // استيراد الدوال من API
+import { GoogleMap, LoadScript, Marker, Circle, InfoWindow } from "@react-google-maps/api";
+import { fetchLocations, addLocation, deleteLocation } from "../Api/locationApi";
 
 const mapContainerStyle = {
   height: "400px",
@@ -21,8 +26,8 @@ const mapContainerStyle = {
 };
 
 const defaultCenter = {
-  lat: 15.5527, // Default latitude
-  lng: 48.5164, // Default longitude
+  lat: 15.5527,
+  lng: 48.5164,
 };
 
 const Locations = () => {
@@ -33,35 +38,39 @@ const Locations = () => {
     city: "",
     latitude: defaultCenter.lat,
     longitude: defaultCenter.lng,
-    radius: 1000, // Default radius
+    radius: 1000,
   });
 
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [snackbarSeverity, setSnackbarSeverity] = useState("error");
+  const [loading, setLoading] = useState(false);
+  const [selectedLocation, setSelectedLocation] = useState(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [locationToDelete, setLocationToDelete] = useState(null);
 
-  // جلب المواقع عند تحميل الصفحة
   useEffect(() => {
     const loadLocations = async () => {
+      setLoading(true);
       try {
         const data = await fetchLocations();
         setLocations(data);
       } catch (error) {
-        setSnackbarMessage("خطأ في جلب المواقع.");
-        setOpenSnackbar(true);
+        showSnackbar("خطأ في جلب المواقع.", "error");
+      } finally {
+        setLoading(false);
       }
     };
 
     loadLocations();
   }, []);
 
-  // تغيير القيم في النموذج
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     const newValue = name === "radius" ? parseInt(value) || 1000 : value;
     setFormData({ ...formData, [name]: newValue });
   };
 
-  // إضافة موقع جديد
   const handleAddLocation = async () => {
     if (
       formData.name &&
@@ -74,6 +83,7 @@ const Locations = () => {
       !isNaN(formData.radius) &&
       formData.radius > 0
     ) {
+      setLoading(true);
       try {
         await addLocation(formData);
         const updatedLocations = await fetchLocations();
@@ -86,17 +96,17 @@ const Locations = () => {
           longitude: defaultCenter.lng,
           radius: 1000,
         });
+        showSnackbar("تمت إضافة الموقع بنجاح.", "success");
       } catch (error) {
-        setSnackbarMessage("خطأ في إضافة الموقع.");
-        setOpenSnackbar(true);
+        showSnackbar("خطأ في إضافة الموقع.", "error");
+      } finally {
+        setLoading(false);
       }
     } else {
-      setSnackbarMessage("يجب تحديد قيمة للنطاق (radius) بشكل صحيح.");
-      setOpenSnackbar(true);
+      showSnackbar("يجب ملء جميع الحقول بشكل صحيح.", "error");
     }
   };
 
-  // النقر على الخريطة لتحديد الإحداثيات
   const handleMapClick = (e) => {
     const { latLng } = e;
     const lat = latLng.lat();
@@ -108,21 +118,43 @@ const Locations = () => {
     });
   };
 
-  // إغلاق الإشعار
-  const handleCloseSnackbar = () => {
-    setOpenSnackbar(false);
-  };
-
-  // حذف موقع
   const handleDeleteLocation = async (id) => {
+    setLoading(true);
     try {
       await deleteLocation(id);
       const updatedLocations = await fetchLocations();
       setLocations(updatedLocations);
+      showSnackbar("تم حذف الموقع بنجاح.", "success");
     } catch (error) {
-      setSnackbarMessage("خطأ في حذف الموقع.");
-      setOpenSnackbar(true);
+      showSnackbar("خطأ في حذف الموقع.", "error");
+    } finally {
+      setLoading(false);
+      setDeleteDialogOpen(false);
     }
+  };
+
+  const showSnackbar = (message, severity) => {
+    setSnackbarMessage(message);
+    setSnackbarSeverity(severity);
+    setOpenSnackbar(true);
+  };
+
+  const handleCloseSnackbar = () => {
+    setOpenSnackbar(false);
+  };
+
+  const handleMarkerClick = (location) => {
+    setSelectedLocation(location);
+  };
+
+  const handleDeleteDialogOpen = (id) => {
+    setLocationToDelete(id);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteDialogClose = () => {
+    setDeleteDialogOpen(false);
+    setLocationToDelete(null);
   };
 
   return (
@@ -141,7 +173,7 @@ const Locations = () => {
           boxShadow: 2,
           borderRadius: "50%",
         }}
-        onClick={fetchLocations}
+        onClick={() => window.location.reload()}
       >
         <RefreshIcon />
       </IconButton>
@@ -215,6 +247,25 @@ const Locations = () => {
                 radius={formData.radius}
                 options={{ fillColor: "blue", strokeColor: "#001F3F" }}
               />
+              {locations.map((location) => (
+                <Marker
+                  key={location._id}
+                  position={{ lat: location.latitude, lng: location.longitude }}
+                  onClick={() => handleMarkerClick(location)}
+                />
+              ))}
+              {selectedLocation && (
+                <InfoWindow
+                  position={{ lat: selectedLocation.latitude, lng: selectedLocation.longitude }}
+                  onCloseClick={() => setSelectedLocation(null)}
+                >
+                  <div>
+                    <h3>{selectedLocation.name}</h3>
+                    <p>{selectedLocation.address}</p>
+                    <p>{selectedLocation.city}</p>
+                  </div>
+                </InfoWindow>
+              )}
             </GoogleMap>
           </LoadScript>
         </Box>
@@ -229,8 +280,9 @@ const Locations = () => {
             marginTop: "20px",
           }}
           onClick={handleAddLocation}
+          disabled={loading}
         >
-          إضافة الموقع
+          {loading ? <CircularProgress size={24} /> : "إضافة الموقع"}
         </Button>
       </Paper>
 
@@ -239,55 +291,68 @@ const Locations = () => {
       </Typography>
 
       <Paper elevation={3} sx={{ padding: "20px", borderRadius: "16px", textAlign: "right" }}>
-        <Grid container spacing={2}>
-          {locations.length > 0 ? (
-            <Grid item xs={12}>
-              <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "right" }}>
-                <thead>
-                  <tr>
-                    <th style={{ padding: "10px", border: "1px solid #ddd" }}>اسم الموقع</th>
-                    <th style={{ padding: "10px", border: "1px solid #ddd" }}>العنوان</th>
-                    <th style={{ padding: "10px", border: "1px solid #ddd" }}>المدينة</th>
-                    <th style={{ padding: "10px", border: "1px solid #ddd" }}>الإحداثيات</th>
-                    <th style={{ padding: "10px", border: "1px solid #ddd" }}>النطاق</th>
-                    <th style={{ padding: "10px", border: "1px solid #ddd" }}>تاريخ الإنشاء</th>
-                    <th style={{ padding: "10px", border: "1px solid #ddd" }}>حذف</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {locations.map((location, index) => (
-                    <tr key={index}>
-                      <td style={{ padding: "10px", border: "1px solid #ddd" }}>{location.name}</td>
-                      <td style={{ padding: "10px", border: "1px solid #ddd" }}>{location.address}</td>
-                      <td style={{ padding: "10px", border: "1px solid #ddd" }}>{location.city}</td>
-                      <td style={{ padding: "10px", border: "1px solid #ddd" }}>{location.latitude}, {location.longitude}</td>
-                      <td style={{ padding: "10px", border: "1px solid #ddd" }}>{location.radius}</td>
-                      <td style={{ padding: "10px", border: "1px solid #ddd" }}>{location.createdAt}</td>
-                      <td style={{ padding: "10px", border: "1px solid #ddd" }}>
-                        <IconButton color="secondary" onClick={() => handleDeleteLocation(location._id)}>
-                          <DeleteIcon />
-                        </IconButton>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </Grid>
-          ) : (
-            <Grid item xs={12}>
-              <Typography variant="body1" sx={{ textAlign: "center", color: "#999" }}>
-                لا توجد مواقع مسجلة بعد.
-              </Typography>
-            </Grid>
-          )}
-        </Grid>
+        {loading ? (
+          <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "200px" }}>
+            <CircularProgress />
+          </Box>
+        ) : locations.length > 0 ? (
+          <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "right" }}>
+            <thead>
+              <tr>
+                <th style={{ padding: "10px", border: "1px solid #ddd" }}>اسم الموقع</th>
+                <th style={{ padding: "10px", border: "1px solid #ddd" }}>العنوان</th>
+                <th style={{ padding: "10px", border: "1px solid #ddd" }}>المدينة</th>
+                <th style={{ padding: "10px", border: "1px solid #ddd" }}>الإحداثيات</th>
+                <th style={{ padding: "10px", border: "1px solid #ddd" }}>النطاق</th>
+                <th style={{ padding: "10px", border: "1px solid #ddd" }}>تاريخ الإنشاء</th>
+                <th style={{ padding: "10px", border: "1px solid #ddd" }}>حذف</th>
+              </tr>
+            </thead>
+            <tbody>
+              {locations.map((location) => (
+                <tr key={location._id}>
+                  <td style={{ padding: "10px", border: "1px solid #ddd" }}>{location.name}</td>
+                  <td style={{ padding: "10px", border: "1px solid #ddd" }}>{location.address}</td>
+                  <td style={{ padding: "10px", border: "1px solid #ddd" }}>{location.city}</td>
+                  <td style={{ padding: "10px", border: "1px solid #ddd" }}>{location.latitude}, {location.longitude}</td>
+                  <td style={{ padding: "10px", border: "1px solid #ddd" }}>{location.radius}</td>
+                  <td style={{ padding: "10px", border: "1px solid #ddd" }}>{location.createdAt}</td>
+                  <td style={{ padding: "10px", border: "1px solid #ddd" }}>
+                    <IconButton color="secondary" onClick={() => handleDeleteDialogOpen(location._id)}>
+                      <DeleteIcon />
+                    </IconButton>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <Typography variant="body1" sx={{ textAlign: "center", color: "#999" }}>
+            لا توجد مواقع مسجلة بعد.
+          </Typography>
+        )}
       </Paper>
 
       <Snackbar open={openSnackbar} autoHideDuration={3000} onClose={handleCloseSnackbar}>
-        <Alert onClose={handleCloseSnackbar} severity="error">
+        <Alert onClose={handleCloseSnackbar} severity={snackbarSeverity}>
           {snackbarMessage}
         </Alert>
       </Snackbar>
+
+      <Dialog open={deleteDialogOpen} onClose={handleDeleteDialogClose}>
+        <DialogTitle>تأكيد الحذف</DialogTitle>
+        <DialogContent>
+          <Typography>هل أنت متأكد من حذف هذا الموقع؟</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDeleteDialogClose} color="primary">
+            إلغاء
+          </Button>
+          <Button onClick={() => handleDeleteLocation(locationToDelete)} color="secondary">
+            حذف
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

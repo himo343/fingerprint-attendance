@@ -43,10 +43,12 @@ const Notifications = () => {
     const notificationData = {
       title: title,
       message: notificationText,
-      type: selectedEmployee.length > 0 ? "specific" : "all",
-      recipients: selectedEmployee,
+      type: selectedEmployee.length > 0 ? "individual" : "all", // استخدام "individual" بدلاً من "specific"
+      recipients: selectedEmployee.length > 0 ? selectedEmployee.map(employee => employee.employeeId) : null,
     };
-
+  
+    console.log("Notification Data:", notificationData); // تحقق من البيانات المرسلة
+  
     try {
       await sendNotification(notificationData);
       console.log("Notification sent successfully!");
@@ -133,7 +135,7 @@ const Notifications = () => {
             value={selectedEmployee}
             onChange={(e) => setSelectedEmployee(e.target.value)}
             renderValue={(selected) =>
-              selected.length ? selected.join(", ") : "إرسال إلى الكل"
+              selected.length ? selected.map(emp => emp.fullname).join(", ") : "إرسال إلى الكل"
             }
           >
             {employees.map((employee, index) => (
@@ -141,7 +143,7 @@ const Notifications = () => {
                 <Checkbox
                   checked={selectedEmployee.indexOf(employee) > -1}
                 />
-                <ListItemText primary={employee} />
+                <ListItemText primary={employee.fullname} />
               </MenuItem>
             ))}
           </Select>

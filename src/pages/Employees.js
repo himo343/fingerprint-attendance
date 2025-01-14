@@ -29,7 +29,7 @@ import {
   addEmployee,
   updateEmployee,
   deleteEmployee,
-} from "../Api/employeeApi"; // استيراد الدوال من API
+} from "../Api/employeeApi";
 
 const EmployeeManagement = () => {
   const [employees, setEmployees] = useState([]);
@@ -72,62 +72,51 @@ const EmployeeManagement = () => {
     const selectedEmployee = employees[index];
     setEmployeeData({
       fullname: selectedEmployee.fullname,
-      phone: selectedEmployee.phone.toString(),
+      phone: selectedEmployee.phone,
       email: selectedEmployee.email,
       department: selectedEmployee.department,
       dateofbirth: new Date(selectedEmployee.dateofbirth).toISOString().split("T")[0],
-      salary: selectedEmployee.salary.toString(),
-      Shift_Id: selectedEmployee.Shift_Id || "",
-      Location_Id: selectedEmployee.Location_Id || "",
+      salary: selectedEmployee.salary,
+      Shift_Id: selectedEmployee.Shift_Id || null, // السماح بقيمة null
+      Location_Id: selectedEmployee.Location_Id || null, // السماح بقيمة null
     });
     setEditMode(true);
     setSelectedEmployeeIndex(index);
   };
 
   // حذف موظف
- 
-const handleDeleteEmployee = async (index) => {
-  // تحقق من وجود الموظف في المصفوفة
-  if (!employees[index]) {
-    console.error("Employee not found at index:", index);
-    setSnackbar({ open: true, message: "تعذر العثور على الموظف!" });
-    return;
-  }
-
-  // الحصول على employeeId
-  const employeeId = employees[index].employeeId_id;
-  console.log("Employee ID to delete:", employeeId);
-
-  // تحقق من وجود employeeId
-  if (!employeeId) {
-    console.error("Employee ID is undefined at index:", index);
-    setSnackbar({ open: true, message: "تعذر العثور على معرف الموظف!" });
-    return;
-  }
-
-  // تأكيد الحذف
-  if (window.confirm("هل تريد بالتأكيد حذف هذا الموظف؟")) {
-    try {
-      // حذف الموظف من الخادم باستخدام دالة API
-      await deleteEmployee(employeeId);
-
-      // تحديث الحالة (حذف الموظف من الواجهة)
-      const updatedEmployees = employees.filter((employeeId_, i) => i !== index);
-      console.log("Updated Employees:", updatedEmployees);
-      setEmployees(updatedEmployees);
-
-      // عرض رسالة نجاح
-      setSnackbar({ open: true, message: "تم حذف الموظف بنجاح!" });
-    } catch (error) {
-      // عرض رسالة الخطأ
-      console.error("Error deleting employee:", error.response?.data);
-      setSnackbar({
-        open: true,
-        message: error.response?.data?.message || "حدث خطأ أثناء حذف الموظف!",
-      });
+  const handleDeleteEmployee = async (index) => {
+    if (!employees[index]) {
+      console.error("Employee not found at index:", index);
+      setSnackbar({ open: true, message: "تعذر العثور على الموظف!" });
+      return;
     }
-  }
-};
+  
+    const employeeId = employees[index].employeeId; // استخدام employeeId بدلاً من _id
+    console.log("Employee ID to delete:", employeeId);
+  
+    if (!employeeId) {
+      console.error("Employee ID is undefined at index:", index);
+      setSnackbar({ open: true, message: "تعذر العثور على معرف الموظف!" });
+      return;
+    }
+  
+    if (window.confirm("هل تريد بالتأكيد حذف هذا الموظف؟")) {
+      try {
+        await deleteEmployee(employeeId);
+        const updatedEmployees = employees.filter((_, i) => i !== index);
+        setEmployees(updatedEmployees);
+        setSnackbar({ open: true, message: "تم حذف الموظف بنجاح!" });
+      } catch (error) {
+        console.error("Error deleting employee:", error.response?.data);
+        setSnackbar({
+          open: true,
+          message: error.response?.data?.message || "حدث خطأ أثناء حذف الموظف!",
+        });
+      }
+    }
+  };
+
   // تغيير القيم في النموذج
   const handleInputChange = (event) => {
     const { name, value } = event.target;
@@ -147,14 +136,15 @@ const handleDeleteEmployee = async (index) => {
         department: employeeData.department.toLowerCase(),
         dateofbirth: employeeData.dateofbirth,
         salary: parseInt(employeeData.salary, 10),
-        shiftId: employeeData.Shift_Id, // تغيير Shift_Id إلى shiftId
-        locationId: employeeData.Location_Id, // تغيير Location_Id إلى locationId
+        Shift_Id: employeeData.Shift_Id || null, // السماح بقيمة null
+        Location_Id: employeeData.Location_Id || null, // السماح بقيمة null
       };
   
-      console.log("Data being sent to API:", formattedData); // تحقق من البيانات هنا
+      console.log("Data being sent to API:", formattedData);
   
       if (editMode) {
-        const updatedEmployee = await updateEmployee(employees[selectedEmployeeIndex]._id, formattedData);
+        const employeeId = employees[selectedEmployeeIndex].employeeId; // استخدام employeeId
+        const updatedEmployee = await updateEmployee(employeeId, formattedData);
         const updatedEmployees = [...employees];
         updatedEmployees[selectedEmployeeIndex] = updatedEmployee;
         setEmployees(updatedEmployees);
@@ -166,10 +156,11 @@ const handleDeleteEmployee = async (index) => {
       }
       resetForm();
     } catch (error) {
-      console.error("Error saving employee:", error.response?.data); // عرض رسالة الخطأ من الخادم
+      console.error("Error saving employee:", error.response?.data);
       setSnackbar({ open: true, message: error.response?.data?.message || "حدث خطأ أثناء حفظ البيانات!" });
     }
   };
+
   // إعادة تعيين النموذج
   const resetForm = () => {
     setEmployeeData({
@@ -188,23 +179,23 @@ const handleDeleteEmployee = async (index) => {
 
   // التحقق من صحة المدخلات
   const validateInputs = () => {
-    const { fullname, phone, email, department, dateofbirth, salary, Shift_Id, Location_Id } = employeeData;
-
-    if (!fullname || !phone || !email || !department || !dateofbirth || !salary || !Shift_Id || !Location_Id) {
+    const { fullname, phone, email, department, dateofbirth, salary } = employeeData;
+  
+    if (!fullname || !phone || !email || !department || !dateofbirth || !salary) {
       setSnackbar({ open: true, message: "جميع الحقول مطلوبة!" });
       return false;
     }
-
-    if (isNaN(phone) || phone.length !== 9) {
+  
+    if (isNaN(phone) || phone.length !== 9 || !/^\d+$/.test(phone)) {
       setSnackbar({ open: true, message: "رقم الهاتف يجب أن يكون 9 أرقام!" });
       return false;
     }
-
+  
     if (isNaN(salary) || salary <= 0) {
       setSnackbar({ open: true, message: "الراتب يجب أن يكون رقمًا صحيحًا أكبر من الصفر!" });
       return false;
     }
-
+  
     return true;
   };
 
@@ -239,7 +230,7 @@ const handleDeleteEmployee = async (index) => {
             <Grid item xs={12} sm={6}>
               <FormControl fullWidth>
                 <InputLabel id="work-schedule-label">جدول الدوام</InputLabel>
-                  <Select
+                <Select
                   labelId="work-schedule-label"
                   name="Shift_Id"
                   value={employeeData.Shift_Id}
@@ -249,7 +240,7 @@ const handleDeleteEmployee = async (index) => {
                 >
                   {workSchedules.map((shift) => (
                     <MenuItem key={shift._id} value={shift._id}>
-                      {shift.shiftname} {}
+                      {shift.shiftname}
                     </MenuItem>
                   ))}
                 </Select>
