@@ -10,10 +10,10 @@ import Employees from "./pages/Employees";
 import Notifications from "./pages/Notifications";
 import Login from "./pages/Login";
 import Locations from "./pages/Locations"; // استيراد صفحة إدارة المواقع
-import LeaveRequests from "./pages/LeaveRequests"; // استيراد صفحة طلبات الاستئذان
+import LeaveRequests from "./JSX/LeaveRequests"; // استيراد صفحة طلبات الاستئذان
 import { DataProvider } from "./context/DataContext"; // استيراد DataProvider
-import ChangePassword from "./pages/ChangePassword";
-import ResetPassword from "./pages/ResetPassword";
+import ChangePassword from "./JSX/ChangePassword";
+import ResetPassword from "./JSX/ResetPassword";
 import Settings from "./pages/Settings";
 
 function App() {
