@@ -22,13 +22,11 @@ import {
   Alert,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
-import EditIcon from "@mui/icons-material/Edit";
 import {
   fetchSchedules,
   addSchedule,
-  updateSchedule,
   deleteSchedule,
-} from "../Api/workScheduleApi";
+} from "../Api/workScheduleApi"; // تمت إزالة updateSchedule
 
 const WorkSchedule = () => {
   const [schedules, setSchedules] = useState([]);
@@ -37,10 +35,9 @@ const WorkSchedule = () => {
     shiftname: "",
     startTime: "",
     endTime: "",
-    shiftType: "heve", // تمت إضافة هذا الحقل
+    shiftType: "heve",
     days: [],
   });
-  const [editingSchedule, setEditingSchedule] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
 
   const daysOfWeek = [
@@ -70,26 +67,14 @@ const WorkSchedule = () => {
     loadSchedules();
   }, []);
 
-  const handleDialogOpen = (schedule = null) => {
-    if (schedule) {
-      setEditingSchedule(schedule);
-      setNewSchedule({
-        shiftname: schedule.shiftname,
-        startTime: schedule.startTime,
-        endTime: schedule.endTime,
-        shiftType: schedule.shiftType || "heve", // تمت إضافة هذا الحقل
-        days: schedule.days,
-      });
-    } else {
-      setNewSchedule({
-        shiftname: "",
-        startTime: "",
-        endTime: "",
-        shiftType: "heve", // تمت إضافة هذا الحقل
-        days: [],
-      });
-      setEditingSchedule(null);
-    }
+  const handleDialogOpen = () => {
+    setNewSchedule({
+      shiftname: "",
+      startTime: "",
+      endTime: "",
+      shiftType: "heve",
+      days: [],
+    });
     setErrorMessage("");
     setOpenDialog(true);
   };
@@ -112,39 +97,30 @@ const WorkSchedule = () => {
     if (!validateSchedule()) {
       return;
     }
-  
+
     try {
       // تحويل الوقت من نص إلى كائن Date
       const startTimeDate = new Date(`1970-01-01T${newSchedule.startTime}:00Z`);
       const endTimeDate = new Date(`1970-01-01T${newSchedule.endTime}:00Z`);
-  
+
       const scheduleData = {
         shiftname: newSchedule.shiftname,
-        startTime: startTimeDate, // إرسال الوقت ككائن Date
-        endTime: endTimeDate, // إرسال الوقت ككائن Date
+        startTime: startTimeDate,
+        endTime: endTimeDate,
         shiftType: newSchedule.shiftType,
         days: newSchedule.days,
       };
-  
-      if (editingSchedule) {
-        // إذا كان التعديل على جدول موجود
-        const updatedSchedule = await updateSchedule(editingSchedule._id, scheduleData);
-        setSchedules((prev) =>
-          prev.map((s) => (s._id === editingSchedule._id ? updatedSchedule : s))
-        );
-      } else {
-        // إذا كان إضافة جدول جديد
-        const newScheduleResponse = await addSchedule(scheduleData);
-        setSchedules((prev) => [...prev, newScheduleResponse]); // تحديث الحالة يدويًا
-      }
-  
+
+      // إضافة جدول جديد فقط
+      const newScheduleResponse = await addSchedule(scheduleData);
+      setSchedules((prev) => [...prev, newScheduleResponse]); // تحديث الحالة يدويًا
+
       handleDialogClose(); // إغلاق النافذة بعد الإضافة
     } catch (error) {
       console.error("Error saving schedule:", error);
       setErrorMessage(error.message || "حدث خطأ أثناء حفظ الجدول.");
     }
   };
-
 
   const handleDeleteSchedule = async (id) => {
     try {
@@ -181,7 +157,7 @@ const WorkSchedule = () => {
       <Button
         variant="contained"
         color="primary"
-        onClick={() => handleDialogOpen()}
+        onClick={handleDialogOpen}
         sx={{ borderRadius: "8px", marginBottom: "20px" }}
       >
         إضافة جدول جديد
@@ -199,49 +175,43 @@ const WorkSchedule = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-  {Array.isArray(schedules) && schedules.length === 0 ? (
-    <TableRow>
-      <TableCell colSpan={5} align="center">
-        لا توجد جداول مضافة
-      </TableCell>
-    </TableRow>
-  ) : (
-    Array.isArray(schedules) &&
-    schedules.map((schedule) => (
-      <TableRow key={schedule._id} sx={{ "&:hover": { backgroundColor: "#f1f1f1" } }}>
-        <TableCell sx={{ textAlign: "right" }}>{schedule.shiftname}</TableCell>
-        <TableCell sx={{ textAlign: "right" }}>
-          {new Date(schedule.startTime).toLocaleTimeString()} {/* تحويل الوقت إلى نص */}
-        </TableCell>
-        <TableCell sx={{ textAlign: "right" }}>
-          {new Date(schedule.endTime).toLocaleTimeString()} {/* تحويل الوقت إلى نص */}
-        </TableCell>
-        <TableCell sx={{ textAlign: "right" }}>
-          {Array.isArray(schedule.days) ? schedule.days.join(", ") : "غير محدد"}
-        </TableCell>
-        <TableCell sx={{ textAlign: "right" }}>
-          <IconButton
-            color="primary"
-            onClick={() => handleDialogOpen(schedule)}
-          >
-            <EditIcon />
-          </IconButton>
-          <IconButton
-            color="error"
-            onClick={() => handleDeleteSchedule(schedule._id)}
-          >
-            <DeleteIcon />
-          </IconButton>
-        </TableCell>
-      </TableRow>
-    ))
-  )}
-</TableBody>
+            {Array.isArray(schedules) && schedules.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={5} align="center">
+                  لا توجد جداول مضافة
+                </TableCell>
+              </TableRow>
+            ) : (
+              Array.isArray(schedules) &&
+              schedules.map((schedule) => (
+                <TableRow key={schedule._id} sx={{ "&:hover": { backgroundColor: "#f1f1f1" } }}>
+                  <TableCell sx={{ textAlign: "right" }}>{schedule.shiftname}</TableCell>
+                  <TableCell sx={{ textAlign: "right" }}>
+                    {new Date(schedule.startTime).toLocaleTimeString()}
+                  </TableCell>
+                  <TableCell sx={{ textAlign: "right" }}>
+                    {new Date(schedule.endTime).toLocaleTimeString()}
+                  </TableCell>
+                  <TableCell sx={{ textAlign: "right" }}>
+                    {Array.isArray(schedule.days) ? schedule.days.join(", ") : "غير محدد"}
+                  </TableCell>
+                  <TableCell sx={{ textAlign: "right" }}>
+                    <IconButton
+                      color="error"
+                      onClick={() => handleDeleteSchedule(schedule._id)}
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
         </Table>
       </TableContainer>
 
       <Dialog open={openDialog} onClose={handleDialogClose} fullWidth maxWidth="sm" sx={{ direction: "rtl", textAlign: "right" }}>
-        <DialogTitle>{editingSchedule ? "تعديل جدول العمل" : "إضافة جدول جديد"}</DialogTitle>
+        <DialogTitle>إضافة جدول جديد</DialogTitle>
         <DialogContent>
           <Grid container spacing={2}>
             <Grid item xs={12}>
@@ -308,7 +278,7 @@ const WorkSchedule = () => {
             إلغاء
           </Button>
           <Button onClick={handleScheduleSubmit} color="primary">
-            {editingSchedule ? "تعديل الجدول" : "إضافة الجدول"}
+            إضافة الجدول
           </Button>
         </DialogActions>
       </Dialog>

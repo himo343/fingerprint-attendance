@@ -28,7 +28,7 @@ const Sidebar = () => {
     { text: "الإشعارات", icon: <NotificationsIcon />, link: "/notifications" },
     { text: "إدارة نماذج الدوام", icon: <EventNoteIcon />, link: "/work-schedule" },
     { text: "طلبات الاستئذان", icon: <RequestPageIcon />, link: "/leave-requests" },
-    { text: "الإعدادات", icon: <SettingsIcon />, link: "/settings" }, // عنصر الإعدادات الجديد
+    { text: "الإعدادات", icon: <SettingsIcon />, link: "/Settings" }, // عنصر الإعدادات الجديد
   ];
 
   return (
