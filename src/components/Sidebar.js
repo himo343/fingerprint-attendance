@@ -22,12 +22,12 @@ const Sidebar = () => {
   const menuItems = [
     { text: "لوحة التحكم", icon: <DashboardIcon />, link: "/dashboard" },
     { text: "إدارة الحضور", icon: <EventNoteIcon />, link: "/attendance" },
-    { text: "التقارير", icon: <EventNoteIcon />, link: "/reports" },
-    { text: "إدارة الموظفين", icon: <PeopleIcon />, link: "/employees" },
     { text: "إدارة المواقع", icon: <LocationOnIcon />, link: "/locations" },
-    { text: "الإشعارات", icon: <NotificationsIcon />, link: "/notifications" },
+    { text: "إدارة الموظفين", icon: <PeopleIcon />, link: "/employees" },
     { text: "إدارة نماذج الدوام", icon: <EventNoteIcon />, link: "/work-schedule" },
     { text: "طلبات الاستئذان", icon: <RequestPageIcon />, link: "/leave-requests" },
+    { text: "التقارير", icon: <EventNoteIcon />, link: "/reports" },
+    { text: "الإشعارات", icon: <NotificationsIcon />, link: "/notifications" },
     { text: "الإعدادات", icon: <SettingsIcon />, link: "/Settings" }, // عنصر الإعدادات الجديد
   ];
 
