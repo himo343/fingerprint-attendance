@@ -124,42 +124,52 @@ const EmployeeManagement = () => {
   };
 
   // حفظ الموظف (إضافة أو تعديل)
-  const handleSaveEmployee = async (event) => {
-    event.preventDefault();
-    if (!validateInputs()) return;
-  
-    try {
-      const formattedData = {
-        fullname: employeeData.fullname,
-        phone: parseInt(employeeData.phone, 10),
-        email: employeeData.email.toUpperCase(),
-        department: employeeData.department.toLowerCase(),
-        dateofbirth: employeeData.dateofbirth,
-        salary: parseInt(employeeData.salary, 10),
-        Shift_Id: employeeData.Shift_Id || null, // السماح بقيمة null
-        Location_Id: employeeData.Location_Id || null, // السماح بقيمة null
-      };
-  
-      console.log("Data being sent to API:", formattedData);
-  
-      if (editMode) {
-        const employeeId = employees[selectedEmployeeIndex].employeeId; // استخدام employeeId
-        const updatedEmployee = await updateEmployee(employeeId, formattedData);
-        const updatedEmployees = [...employees];
-        updatedEmployees[selectedEmployeeIndex] = updatedEmployee;
-        setEmployees(updatedEmployees);
-        setSnackbar({ open: true, message: "تم تعديل بيانات الموظف بنجاح!" });
-      } else {
-        const newEmployee = await addEmployee(formattedData);
-        setEmployees([...employees, newEmployee]);
-        setSnackbar({ open: true, message: "تم إضافة الموظف بنجاح!" });
-      }
-      resetForm();
-    } catch (error) {
-      console.error("Error saving employee:", error.response?.data);
-      setSnackbar({ open: true, message: error.response?.data?.message || "حدث خطأ أثناء حفظ البيانات!" });
+ const handleSaveEmployee = async (event) => {
+  event.preventDefault();
+  if (!validateInputs()) return;
+
+  try {
+    const formattedData = {
+      fullname: employeeData.fullname,
+      phone: parseInt(employeeData.phone, 10),
+      email: employeeData.email.toUpperCase(),
+      department: employeeData.department.toLowerCase(),
+      dateofbirth: employeeData.dateofbirth,
+      salary: parseInt(employeeData.salary, 10),
+      Shift_Id: employeeData.Shift_Id || null,
+      Location_Id: employeeData.Location_Id || null,
+    };
+
+    console.log("Data being sent to API:", formattedData);
+
+    if (editMode) {
+      const employeeId = employees[selectedEmployeeIndex].employeeId;
+      const updatedEmployee = await updateEmployee(employeeId, formattedData);
+      
+      // تحديث الموظف في القائمة مباشرة
+      setEmployees((prevEmployees) =>
+        prevEmployees.map((emp, index) =>
+          index === selectedEmployeeIndex ? updatedEmployee : emp
+        )
+      );
+      
+      setSnackbar({ open: true, message: "تم تعديل بيانات الموظف بنجاح!" });
+    } else {
+      const newEmployee = await addEmployee(formattedData);
+      
+      // إضافة الموظف الجديد إلى القائمة فورًا
+      setEmployees((prevEmployees) => [...prevEmployees, newEmployee]);
+      
+      setSnackbar({ open: true, message: "تم إضافة الموظف بنجاح!" });
     }
-  };
+
+    resetForm();
+  } catch (error) {
+    console.error("Error saving employee:", error.response?.data);
+    setSnackbar({ open: true, message: error.response?.data?.message || "حدث خطأ أثناء حفظ البيانات!" });
+  }
+};
+
 
   // إعادة تعيين النموذج
   const resetForm = () => {

@@ -19,7 +19,6 @@ import {
   InputLabel,
   Snackbar,
 } from "@mui/material";
-import FilterListIcon from "@mui/icons-material/FilterList";
 import DownloadIcon from "@mui/icons-material/Download";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import { fetchAttendanceData, downloadAttendanceReport } from "../Api/attendanceApi";
@@ -27,7 +26,7 @@ import { fetchAttendanceData, downloadAttendanceReport } from "../Api/attendance
 function Attendance() {
   const [attendanceData, setAttendanceData] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [filterStatus, setFilterStatus] = useState("");
+  const [filterDepartment, setFilterDepartment] = useState("");
   const [snackbar, setSnackbar] = useState({ open: false, message: "" });
 
   // جلب بيانات الحضور عند تحميل الصفحة
@@ -47,10 +46,12 @@ function Attendance() {
   // تصفية البيانات
   const filteredData = attendanceData.filter((item) => {
     const matchesSearch =
-      item.employee.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.date.includes(searchQuery);
-    const matchesStatus = filterStatus ? item.status === filterStatus : true;
-    return matchesSearch && matchesStatus;
+      item.fullname?.toLowerCase().includes(searchQuery.toLowerCase()) || // تعديل المرجع إلى fullname
+      item.create_at?.includes(searchQuery); // استخدام create_at بدلًا من date
+    
+    const matchesDepartment = filterDepartment ? item.department === filterDepartment : true;
+
+    return matchesSearch && matchesDepartment;
   });
 
   // تنزيل التقرير
@@ -104,30 +105,18 @@ function Attendance() {
           </Grid>
           <Grid item xs={12} sm={4}>
             <FormControl fullWidth>
-              <InputLabel id="filter-status-label">تصفية بالحالة</InputLabel>
+              <InputLabel id="filter-department-label">تصفية بالقسم</InputLabel>
               <Select
-                labelId="filter-status-label"
-                value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value)}
+                labelId="filter-department-label"
+                value={filterDepartment}
+                onChange={(e) => setFilterDepartment(e.target.value)}
                 sx={{ textAlign: "right" }}
               >
                 <MenuItem value="">الكل</MenuItem>
-                <MenuItem value="حاضر">حاضر</MenuItem>
-                <MenuItem value="غائب">غائب</MenuItem>
+                <MenuItem value="it">it</MenuItem>
+                <MenuItem value="hr">المحاسبة</MenuItem>
               </Select>
             </FormControl>
-          </Grid>
-          <Grid item xs={12} sm={2}>
-            <Button
-              variant="contained"
-              color="primary"
-              fullWidth
-              startIcon={<FilterListIcon />}
-              onClick={() => setSnackbar({ open: true, message: "تم تطبيق التصفية" })}
-              sx={{ height: "56px", fontWeight: "bold" }}
-            >
-              تصفية
-            </Button>
           </Grid>
         </Grid>
       </Paper>
@@ -139,16 +128,20 @@ function Attendance() {
             <TableHead sx={{ background: "#001F3F" }}>
               <TableRow>
                 <TableCell sx={{ color: "#FFFFFF", fontWeight: "bold", textAlign: "right" }}>اسم الموظف</TableCell>
-                <TableCell sx={{ color: "#FFFFFF", fontWeight: "bold", textAlign: "right" }}>التاريخ</TableCell>
-                <TableCell sx={{ color: "#FFFFFF", fontWeight: "bold", textAlign: "right" }}>الحالة</TableCell>
+                <TableCell sx={{ color: "#FFFFFF", fontWeight: "bold", textAlign: "right" }}>البريد الإلكتروني</TableCell>
+                <TableCell sx={{ color: "#FFFFFF", fontWeight: "bold", textAlign: "right" }}>رقم الهاتف</TableCell>
+                <TableCell sx={{ color: "#FFFFFF", fontWeight: "bold", textAlign: "right" }}>القسم</TableCell>
+                <TableCell sx={{ color: "#FFFFFF", fontWeight: "bold", textAlign: "right" }}>تاريخ الإنشاء</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {filteredData.map((attendance) => (
-                <TableRow key={attendance.id}>
-                  <TableCell sx={{ textAlign: "right" }}>{attendance.employee}</TableCell>
-                  <TableCell sx={{ textAlign: "right" }}>{attendance.date}</TableCell>
-                  <TableCell sx={{ textAlign: "right" }}>{attendance.status}</TableCell>
+              {filteredData.map((employee) => (
+                <TableRow key={employee.employeeId}>
+                  <TableCell sx={{ textAlign: "right" }}>{employee.fullname}</TableCell>
+                  <TableCell sx={{ textAlign: "right" }}>{employee.email}</TableCell>
+                  <TableCell sx={{ textAlign: "right" }}>{employee.phone}</TableCell>
+                  <TableCell sx={{ textAlign: "right" }}>{employee.department}</TableCell>
+                  <TableCell sx={{ textAlign: "right" }}>{new Date(employee.create_at).toLocaleDateString()}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

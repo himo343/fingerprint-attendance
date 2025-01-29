@@ -1,18 +1,13 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  Box,
-  Button,
-  TextField,
-  Typography,
-  Paper,
-} from "@mui/material";
+import { Box, Button, TextField, Typography, Paper } from "@mui/material";
 import logo from "../assets/logo.png";
 import { login } from "../Api/authApi"; // استيراد دالة تسجيل الدخول من API
 
 const Login = ({ setIsLoggedIn }) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState(""); // حالة لإدارة رسائل الخطأ
   const navigate = useNavigate();
 
   const handleLogin = async () => {
@@ -22,7 +17,7 @@ const Login = ({ setIsLoggedIn }) => {
       setIsLoggedIn(true);
       navigate("/dashboard");
     } catch (error) {
-      alert(error.message || "No internet connection");
+      setError("كلمة المرور أو اسم المستخدم غير صحيح"); // عرض رسالة الخطأ
     }
   };
 
@@ -52,8 +47,8 @@ const Login = ({ setIsLoggedIn }) => {
             src={logo}
             alt="Logo"
             style={{
-              width: "100px",
-              height: "100px",
+              width: "300px",
+              height: "300px",
               borderRadius: "60%",
               filter: "drop-shadow(0 5px 15px rgba(0, 0, 0, 0.3))",
             }}
@@ -94,6 +89,15 @@ const Login = ({ setIsLoggedIn }) => {
           onChange={(e) => setPassword(e.target.value)}
           sx={{ backgroundColor: "#f7f7f7", borderRadius: "5px" }}
         />
+        {error && ( // عرض رسالة الخطأ إذا كانت موجودة
+          <Typography
+            variant="body2"
+            align="center"
+            sx={{ color: "red", mt: 1 }}
+          >
+            {error}
+          </Typography>
+        )}
         <Button
           variant="contained"
           fullWidth
@@ -108,18 +112,6 @@ const Login = ({ setIsLoggedIn }) => {
         >
           تسجيل الدخول
         </Button>
-        <Typography
-          variant="body2"
-          align="center"
-          sx={{
-            marginTop: "20px",
-            color: "#777",
-            "& a": { color: "#3A6D8C", textDecoration: "none" },
-          }}
-       
-        >
-          نسيت كلمة المرور؟ <a href="/reset">إعادة تعيين</a>
-        </Typography>
       </Paper>
     </Box>
   );

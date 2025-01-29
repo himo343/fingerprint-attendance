@@ -97,12 +97,12 @@ const WorkSchedule = () => {
     if (!validateSchedule()) {
       return;
     }
-
+  
     try {
       // تحويل الوقت من نص إلى كائن Date
       const startTimeDate = new Date(`1970-01-01T${newSchedule.startTime}:00Z`);
       const endTimeDate = new Date(`1970-01-01T${newSchedule.endTime}:00Z`);
-
+  
       const scheduleData = {
         shiftname: newSchedule.shiftname,
         startTime: startTimeDate,
@@ -110,17 +110,20 @@ const WorkSchedule = () => {
         shiftType: newSchedule.shiftType,
         days: newSchedule.days,
       };
-
+  
       // إضافة جدول جديد فقط
       const newScheduleResponse = await addSchedule(scheduleData);
-      setSchedules((prev) => [...prev, newScheduleResponse]); // تحديث الحالة يدويًا
-
+  
+      // تحديث الحالة مباشرة بعد إضافة الجدول الجديد
+      setSchedules((prev) => [...prev, newScheduleResponse]);
+  
       handleDialogClose(); // إغلاق النافذة بعد الإضافة
     } catch (error) {
       console.error("Error saving schedule:", error);
       setErrorMessage(error.message || "حدث خطأ أثناء حفظ الجدول.");
     }
   };
+  
 
   const handleDeleteSchedule = async (id) => {
     try {

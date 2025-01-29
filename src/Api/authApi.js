@@ -1,5 +1,5 @@
 // src/api/authApi.js
-const API_URL = "https://shrouded-harbor-25880-c6a9ab9411a9.herokuapp.com/api/admin";
+const API_URL = "https://guarded-ocean-10405-67e33b12d874.herokuapp.com/api/admin";
 
 // تسجيل الدخول
 export const login = async (username, password) => {

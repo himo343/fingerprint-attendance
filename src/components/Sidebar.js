@@ -1,5 +1,5 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import {
   List,
   ListItem,
@@ -19,6 +19,7 @@ import RequestPageIcon from "@mui/icons-material/RequestPage";
 import SettingsIcon from "@mui/icons-material/Settings"; // إضافة أيقونة الإعدادات
 
 const Sidebar = () => {
+  const location = useLocation(); // استخدام useLocation لمعرفة الرابط الحالي
   const menuItems = [
     { text: "لوحة التحكم", icon: <DashboardIcon />, link: "/dashboard" },
     { text: "إدارة الحضور", icon: <EventNoteIcon />, link: "/attendance" },
@@ -33,21 +34,20 @@ const Sidebar = () => {
 
   return (
     <Box
-    sx={{
-      width: "250px",
-      background: "linear-gradient(145deg, #001F3F, #3A6D8C)",
-      color: "white",
-      height: "100vh",
-      p: 2,
-      borderRadius: "16px",
-      boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
-      position: "fixed", // تجعل القائمة الجانبية ثابتة
-      top: 0,
-      right: 0, // إذا كنت تستخدم الاتجاه rtl
-      direction: "rtl",
-    }}
-  >
-  
+      sx={{
+        width: "250px",
+        background: "linear-gradient(145deg, #001F3F, #3A6D8C)",
+        color: "white",
+        height: "100vh",
+        p: 2,
+        borderRadius: "16px",
+        boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+        position: "fixed", // تجعل القائمة الجانبية ثابتة
+        top: 0,
+        right: 0, // إذا كنت تستخدم الاتجاه rtl
+        direction: "rtl",
+      }}
+    >
       <Typography
         variant="h5"
         component="h2"
@@ -71,6 +71,7 @@ const Sidebar = () => {
               sx={{
                 borderRadius: "12px",
                 transition: "0.3s",
+                backgroundColor: location.pathname === item.link ? "#6A9AB0" : "transparent", // تغيير اللون إذا كانت الصفحة النشطة
                 "&:hover": {
                   background: "#6A9AB0",
                 },

@@ -1,12 +1,12 @@
 // src/api/attendanceApi.js
 import axios from 'axios';
 
-const API_URL = process.env.REACT_APP_API_URL || 'https://shrouded-harbor-25880-c6a9ab9411a9.herokuapp.com/api/employees';
+const API_URL = process.env.REACT_APP_API_URL || 'https://guarded-ocean-10405-67e33b12d874.herokuapp.com/api/employees';
 
 // دالة لجلب بيانات الحضور
 export const fetchAttendanceData = async () => {
   try {
-    const response = await axios.get(`${API_URL}/attendance`);
+    const response = await axios.get(`https://guarded-ocean-10405-67e33b12d874.herokuapp.com/api/employees`);
     return response.data;
   } catch (error) {
     console.error("Error fetching attendance data", error);
@@ -29,6 +29,17 @@ export const downloadAttendanceReport = async (data) => {
     return { success: true, message: "تم تنزيل تقرير الحضور بنجاح" };
   } catch (error) {
     console.error("Error downloading report", error);
+    throw error;
+  }
+};
+
+// دالة لجلب بيانات الموظفين
+export const fetchEmployees = async () => {
+  try {
+    const response = await axios.get(`${API_URL}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching employees data", error);
     throw error;
   }
 };

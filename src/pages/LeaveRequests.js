@@ -42,14 +42,15 @@ const LeaveRequests = () => {
   // التعامل مع القبول أو الرفض
   const handleAction = async (id, adminResponse) => {
     try {
+      // إرسال القيمة المحدثة إلى الـ API
       const data = await updateLeaveRequest(id, adminResponse);
       console.log("API Response:", data);
-
+  
       setSnackbar({
         open: true,
         message: `تم ${adminResponse === "Approved" ? "الموافقة على" : "رفض"} الطلب بنجاح`,
       });
-
+  
       // تحديث الحالة محلياً بدون إعادة تحميل الصفحة
       setLeaveRequests((prev) =>
         prev.map((request) =>
@@ -163,29 +164,29 @@ const LeaveRequests = () => {
                       {request.adminResponse === "Pending" && (
                         <Typography color="orange">قيد الانتظار</Typography>
                       )}
-                    </TableCell>
-                    <TableCell>
-                      {request.adminResponse === "Pending" && (
-                        <>
-                          <IconButton
-                            color="success"
-                            onClick={() =>
-                              handleAction(request._id, "Approved")
-                            }
-                          >
-                            <CheckCircleIcon />
-                          </IconButton>
-                          <IconButton
-                            color="error"
-                            onClick={() =>
-                              handleAction(request._id, "Rejected")
-                            }
-                          >
-                            <CancelIcon />
-                          </IconButton>
-                        </>
-                      )}
-                    </TableCell>
+                                      </TableCell>
+                                      <TableCell>
+                    {request.adminResponse === "Pending" && (
+                      <>
+                        <IconButton
+                          color="success"
+                          onClick={() =>
+                            handleAction(request._id, "Approved") // إرسال "Approved" عند الضغط على الصح
+                          }
+                        >
+                          <CheckCircleIcon />
+                        </IconButton>
+                        <IconButton
+                          color="error"
+                          onClick={() =>
+                            handleAction(request._id, "Rejected") // إرسال "Rejected" عند الضغط على الاكس
+                          }
+                        >
+                          <CancelIcon/>
+                        </IconButton>
+                      </>
+                    )}
+                  </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
