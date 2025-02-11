@@ -45,7 +45,7 @@ const LeaveRequests = () => {
 
       setSnackbar({
         open: true,
-        message: `تم ${adminResponse === "Approved" ? "الموافقة على" : "رفض"} الطلب بنجاح`,
+        message: `تم ${adminResponse === "Approved" ? "الموافقة على" : adminResponse === "Rejected" ? "رفض" : ""} الطلب بنجاح`,
       });
 
       setLeaveRequests((prev) =>
