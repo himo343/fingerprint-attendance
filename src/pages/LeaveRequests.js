@@ -15,22 +15,22 @@ import {
 } from "@mui/material";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CancelIcon from "@mui/icons-material/Cancel";
-import { fetchLeaveRequests, updateLeaveRequest } from "../Api/leaveApi";
+import { fetchLeaveRequests, updateLeaveRequest } from "../Api/leaveApi"; // تم التحديث هنا
 
 const LeaveRequests = () => {
   const [leaveRequests, setLeaveRequests] = useState([]);
   const [snackbar, setSnackbar] = useState({ open: false, message: "" });
   const [loading, setLoading] = useState(false);
 
-  // جلب بيانات طلبات الاستئذان
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const leaveData = await fetchLeaveRequests();
-        setLeaveRequests(leaveData);
+        const data = await fetchLeaveRequests(); // تم التحديث هنا
+        setLeaveRequests(data);
       } catch (error) {
         console.error("Error fetching leave requests:", error);
+        setSnackbar({ open: true, message: "فشل في جلب البيانات" });
       } finally {
         setLoading(false);
       }
@@ -39,29 +39,37 @@ const LeaveRequests = () => {
     fetchData();
   }, []);
 
-  // التعامل مع القبول أو الرفض
+  // دالة لتصحيح القيم غير المتوقعة
+  const normalizeAdminResponse = (response) => {
+    if (response === "ٌRejecte" || response === "Rejecte") {
+      return "Rejected";
+    }
+    if (response === "Approved") {
+      return "Approved";
+    }
+    return "Pending"; // إذا كانت القيمة غير معروفة
+  };
+
   const handleAction = async (id, adminResponse) => {
     try {
-      // إرسال القيمة المحدثة إلى الـ API
-      const data = await updateLeaveRequest(id, adminResponse);
-      console.log("API Response:", data);
-  
+      // تأكد من أن القيمة المرسلة صحيحة
+      const normalizedResponse = adminResponse === "Approved" ? "Approved" : "Rejected";
+      await updateLeaveRequest(id, normalizedResponse);
+
       setSnackbar({
         open: true,
-        message: `تم ${adminResponse === "Approved" ? "الموافقة على" : "رفض"} الطلب بنجاح`,
+        message: `تم ${normalizedResponse === "Approved" ? "الموافقة على" : "رفض"} الطلب بنجاح`,
       });
-  
-      // تحديث الحالة محلياً بدون إعادة تحميل الصفحة
+
+      // تحديث حالة الطلب في الواجهة الأمامية
       setLeaveRequests((prev) =>
         prev.map((request) =>
-          request._id === id
-            ? { ...request, adminResponse: adminResponse }
-            : request
+          request._id === id ? { ...request, adminResponse: normalizedResponse } : request
         )
       );
     } catch (error) {
       console.error("Error updating leave request:", error);
-      setSnackbar({ open: true, message: "فشل الاتصال بالخادم" });
+      setSnackbar({ open: true, message: "فشل في تحديث الطلب" });
     }
   };
 
@@ -81,11 +89,7 @@ const LeaveRequests = () => {
         gap: "20px",
       }}
     >
-      <Typography
-        variant="h4"
-        gutterBottom
-        sx={{ color: "#3A6D8C", fontWeight: "bold" }}
-      >
+      <Typography variant="h4" gutterBottom sx={{ color: "#3A6D8C", fontWeight: "bold" }}>
         إدارة طلبات الاستئذان
       </Typography>
 
@@ -99,23 +103,12 @@ const LeaveRequests = () => {
           background: "#FFFFFF",
         }}
       >
-        <Typography
-          variant="h5"
-          gutterBottom
-          sx={{ color: "#3A6D8C", fontWeight: "bold", textAlign: "center" }}
-        >
+        <Typography variant="h5" gutterBottom sx={{ color: "#3A6D8C", fontWeight: "bold", textAlign: "center" }}>
           قائمة طلبات الاستئذان
         </Typography>
 
         {loading ? (
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              height: "300px",
-            }}
-          >
+          <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "300px" }}>
             <CircularProgress />
           </Box>
         ) : (
@@ -123,84 +116,57 @@ const LeaveRequests = () => {
             <Table>
               <TableHead sx={{ backgroundColor: "#3A6D8C" }}>
                 <TableRow>
-                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>
-                    معرف الطلب
-                  </TableCell>
-                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>
-                    نوع الاستئذان
-                  </TableCell>
-                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>
-                    تاريخ البداية
-                  </TableCell>
-                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>
-                    تاريخ النهاية
-                  </TableCell>
-                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>
-                    السبب
-                  </TableCell>
-                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>
-                    الحالة الحالية
-                  </TableCell>
-                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>
-                    الإجراءات
-                  </TableCell>
+                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>اسم الموظف</TableCell>
+                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>نوع الاستئذان</TableCell>
+                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>تاريخ البداية</TableCell>
+                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>تاريخ النهاية</TableCell>
+                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>السبب</TableCell>
+                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>الحالة الحالية</TableCell>
+                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>الإجراءات</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {leaveRequests.map((request) => (
-                  <TableRow key={request._id}>
-                    <TableCell>{request._id}</TableCell>
-                    <TableCell>{request.leaveType || "غير متوفر"}</TableCell>
-                    <TableCell>{request.startDate || "غير متوفر"}</TableCell>
-                    <TableCell>{request.endDate || "غير متوفر"}</TableCell>
-                    <TableCell>{request.reason || "غير متوفر"}</TableCell>
-                    <TableCell>
-                      {request.adminResponse === "Approved" && (
-                        <Typography color="green">مقبول</Typography>
-                      )}
-                      {request.adminResponse === "Rejected" && (
-                        <Typography color="red">مرفوض</Typography>
-                      )}
-                      {request.adminResponse === "Pending" && (
-                        <Typography color="orange">قيد الانتظار</Typography>
-                      )}
-                                      </TableCell>
-                                      <TableCell>
-                    {request.adminResponse === "Pending" && (
-                      <>
-                        <IconButton
-                          color="success"
-                          onClick={() =>
-                            handleAction(request._id, "Approved") // إرسال "Approved" عند الضغط على الصح
-                          }
-                        >
-                          <CheckCircleIcon />
-                        </IconButton>
-                        <IconButton
-                          color="error"
-                          onClick={() =>
-                            handleAction(request._id, "Rejected") // إرسال "Rejected" عند الضغط على الاكس
-                          }
-                        >
-                          <CancelIcon/>
-                        </IconButton>
-                      </>
-                    )}
-                  </TableCell>
+                {leaveRequests.length > 0 ? (
+                  leaveRequests.map((request) => (
+                    <TableRow key={request._id}>
+                      <TableCell>{request.employeeId?.fullname || "غير متوفر"}</TableCell>
+                      <TableCell>{request.leaveType || "غير متوفر"}</TableCell>
+                      <TableCell>{request.startDate || "غير متوفر"}</TableCell>
+                      <TableCell>{request.endDate || "غير متوفر"}</TableCell>
+                      <TableCell>{request.reason || "غير متوفر"}</TableCell>
+                      <TableCell>
+                        {normalizeAdminResponse(request.adminResponse) === "Approved" ? "مقبول" :
+                          normalizeAdminResponse(request.adminResponse) === "Rejected" ? "مرفوض" :
+                            "قيد الانتظار"}
+                      </TableCell>
+                      <TableCell>
+                        {normalizeAdminResponse(request.adminResponse) === "Pending" && (
+                          <>
+                            <IconButton color="success" onClick={() => handleAction(request._id, "Approved")}>
+                              <CheckCircleIcon />
+                            </IconButton>
+                            <IconButton color="error" onClick={() => handleAction(request._id, "Rejected")}>
+                              <CancelIcon />
+                            </IconButton>
+                          </>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={7} sx={{ textAlign: "center" }}>
+                      لا توجد طلبات استئذان
+                    </TableCell>
                   </TableRow>
-                ))}
+                )}
               </TableBody>
             </Table>
           </TableContainer>
         )}
       </Paper>
 
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={4000}
-        onClose={handleCloseSnackbar}
-        message={snackbar.message}
-      />
+      <Snackbar open={snackbar.open} autoHideDuration={4000} onClose={handleCloseSnackbar} message={snackbar.message} />
     </Box>
   );
 };
