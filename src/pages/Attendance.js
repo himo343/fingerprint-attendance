@@ -13,10 +13,7 @@ import {
   Paper,
   Grid,
   IconButton,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
+  
   Snackbar,
 } from "@mui/material";
 import DownloadIcon from "@mui/icons-material/Download";
@@ -46,8 +43,9 @@ function Attendance() {
   // تصفية البيانات
   const filteredData = attendanceData.filter((item) => {
     const matchesSearch =
-      item.fullname?.toLowerCase().includes(searchQuery.toLowerCase()) || // تعديل المرجع إلى fullname
-      item.create_at?.includes(searchQuery); // استخدام create_at بدلًا من date
+      item.fullname?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.entry_time?.includes(searchQuery) ||
+      item.exit_time?.includes(searchQuery);
     
     const matchesDepartment = filterDepartment ? item.department === filterDepartment : true;
 
@@ -69,7 +67,7 @@ function Attendance() {
     window.location.reload();
   };
 
-  // إغلاق الـ Snackbar
+  // إغلاق الإشعار
   const handleCloseSnackbar = () => {
     setSnackbar({ ...snackbar, open: false });
   };
@@ -94,30 +92,16 @@ function Attendance() {
         <Grid container spacing={2}>
           <Grid item xs={12} sm={6}>
             <TextField
-              label="البحث حسب الموظف أو التاريخ"
+              label="البحث حسب الموظف أو وقت الدخول"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               fullWidth
               variant="outlined"
-              placeholder="أدخل اسم الموظف أو التاريخ"
+              placeholder="أدخل اسم الموظف أو وقت الدخول"
               sx={{ textAlign: "right" }}
             />
           </Grid>
-          <Grid item xs={12} sm={4}>
-            <FormControl fullWidth>
-              <InputLabel id="filter-department-label">تصفية بالقسم</InputLabel>
-              <Select
-                labelId="filter-department-label"
-                value={filterDepartment}
-                onChange={(e) => setFilterDepartment(e.target.value)}
-                sx={{ textAlign: "right" }}
-              >
-                <MenuItem value="">الكل</MenuItem>
-                <MenuItem value="it">it</MenuItem>
-                <MenuItem value="hr">المحاسبة</MenuItem>
-              </Select>
-            </FormControl>
-          </Grid>
+         
         </Grid>
       </Paper>
 
@@ -125,23 +109,31 @@ function Attendance() {
       <Paper elevation={3} sx={{ borderRadius: "16px", overflow: "hidden" }}>
         <TableContainer>
           <Table>
-            <TableHead sx={{ background: "#001F3F" }}>
+            <TableHead sx={{ background: "#3A6D8C" }}>
               <TableRow>
                 <TableCell sx={{ color: "#FFFFFF", fontWeight: "bold", textAlign: "right" }}>اسم الموظف</TableCell>
-                <TableCell sx={{ color: "#FFFFFF", fontWeight: "bold", textAlign: "right" }}>البريد الإلكتروني</TableCell>
-                <TableCell sx={{ color: "#FFFFFF", fontWeight: "bold", textAlign: "right" }}>رقم الهاتف</TableCell>
-                <TableCell sx={{ color: "#FFFFFF", fontWeight: "bold", textAlign: "right" }}>القسم</TableCell>
-                <TableCell sx={{ color: "#FFFFFF", fontWeight: "bold", textAlign: "right" }}>تاريخ الإنشاء</TableCell>
+                <TableCell sx={{ color: "#FFFFFF", fontWeight: "bold", textAlign: "right" }}>وقت الدخول</TableCell>
+                <TableCell sx={{ color: "#FFFFFF", fontWeight: "bold", textAlign: "right" }}>وقت الانصراف</TableCell>
+                <TableCell sx={{ color: "#FFFFFF", fontWeight: "bold", textAlign: "right" }}>حالة الحضور</TableCell>
+                <TableCell sx={{ color: "#FFFFFF", fontWeight: "bold", textAlign: "right" }}>عدد ساعات العمل</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {filteredData.map((employee) => (
                 <TableRow key={employee.employeeId}>
                   <TableCell sx={{ textAlign: "right" }}>{employee.fullname}</TableCell>
-                  <TableCell sx={{ textAlign: "right" }}>{employee.email}</TableCell>
-                  <TableCell sx={{ textAlign: "right" }}>{employee.phone}</TableCell>
-                  <TableCell sx={{ textAlign: "right" }}>{employee.department}</TableCell>
-                  <TableCell sx={{ textAlign: "right" }}>{new Date(employee.create_at).toLocaleDateString()}</TableCell>
+                  <TableCell sx={{ textAlign: "right" }}>
+                    {employee.entry_time ? new Date(employee.entry_time).toLocaleTimeString() : "--"}
+                  </TableCell>
+                  <TableCell sx={{ textAlign: "right" }}>
+                    {employee.exit_time ? new Date(employee.exit_time).toLocaleTimeString() : "--"}
+                  </TableCell>
+                  <TableCell sx={{ textAlign: "right", color: employee.status === "حاضر" ? "green" : "red" }}>
+                    {employee.status}
+                  </TableCell>
+                  <TableCell sx={{ textAlign: "right" }}>
+                    {employee.work_hours ? `${employee.work_hours} ساعات` : "--"}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>

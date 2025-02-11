@@ -9,208 +9,216 @@ import {
   TableHead,
   TableRow,
   Paper,
-  TextField,
-  Button,
-  Grid,
-  IconButton,
+  CircularProgress,
   Tabs,
   Tab,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  CircularProgress,
 } from "@mui/material";
-import jsPDF from "jspdf";
-import "jspdf-autotable";
-import RefreshIcon from "@mui/icons-material/Refresh";
+import AccessTimeIcon from "@mui/icons-material/AccessTime";
+import NotificationsActiveIcon from "@mui/icons-material/NotificationsActive";
+import LocationOnIcon from "@mui/icons-material/LocationOn";
+import PersonIcon from "@mui/icons-material/Person";
+import EventAvailableIcon from "@mui/icons-material/EventAvailable";
 
 function Reports() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [filterType, setFilterType] = useState("attendance"); // نوع التقرير
-  const [filterDepartment, setFilterDepartment] = useState(""); // الفلترة حسب القسم
-  const [filterLocation, setFilterLocation] = useState(""); // الفلترة حسب الموقع
-  const [tabValue, setTabValue] = useState(0); // قيمة التبويب
-  const [reports, setReports] = useState([]); // البيانات الحقيقية
-  const [loading, setLoading] = useState(false); // حالة التحميل
+  const [tabValue, setTabValue] = useState(0);
+  const [attendanceData, setAttendanceData] = useState([]);
+  const [notifications, setNotifications] = useState([]);
+  const [locationData, setLocationData] = useState({
+    location: "",
+    address: "",
+    city: "",
+    coordinates: "",
+    range: "",
+  });
+  const [employeeData, setEmployeeData] = useState({
+    name: "",
+    phone: "",
+    email: "",
+    department: "",
+    birthDate: "",
+    salary: "",
+  });
+  const [leaveData, setLeaveData] = useState({
+    employee: "",
+    leaveType: "",
+    reason: "",
+    approvalStatus: "",
+  });
+  const [loading, setLoading] = useState(false);
 
-  // أنواع التقارير
-  const reportTypes = ["attendance", "employees", "locations", "leaveRequests", "notifications"];
+  useEffect(() => {
+    fetchReports();
+  }, [tabValue]);
 
-  // جلب البيانات من API
-  const fetchData = async (type) => {
+  const fetchReports = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`https://api.example.com/reports/${type}`); // استبدل بالرابط الحقيقي
-      const data = await response.json();
-      setReports(data);
+      let response;
+      if (tabValue === 0) {
+        response = await fetch("https://guarded-ocean-10405-67e33b12d874.herokuapp.com/api/attendance/getallreports");
+        const data = await response.json();
+        if (Array.isArray(data)) {
+          setAttendanceData(data);
+        } else {
+          console.error("البيانات ليست مصفوفة");
+          setAttendanceData([]);
+        }
+      } else if (tabValue === 1) {
+        response = await fetch("https://api.example.com/notifications");
+        const data = await response.json();
+        setNotifications(data);
+      }
     } catch (error) {
-      console.error("Error fetching data:", error);
+      console.error("Error fetching reports:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  // تحديث البيانات عند تغيير التبويب
-  useEffect(() => {
-    fetchData(reportTypes[tabValue]);
-  }, [tabValue]);
+  const handleLocationChange = (event) => setLocationData({ ...locationData, [event.target.name]: event.target.value });
+  const handleEmployeeChange = (event) => setEmployeeData({ ...employeeData, [event.target.name]: event.target.value });
+  const handleLeaveChange = (event) => setLeaveData({ ...leaveData, [event.target.name]: event.target.value });
 
-  // فلترة البيانات حسب البحث ونوع التقرير
-  const filteredReports = reports.filter((report) => {
-    const matchesSearch =
-      report.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      report.date?.includes(searchQuery) ||
-      report.location?.toLowerCase().includes(searchQuery.toLowerCase());
-
-    const matchesDepartment = filterDepartment ? report.department === filterDepartment : true;
-    const matchesLocation = filterLocation ? report.location === filterLocation : true;
-
-    return matchesSearch && matchesDepartment && matchesLocation;
-  });
-
-  // تحميل التقرير كملف PDF
-  const handleDownloadPDF = () => {
-    const doc = new jsPDF();
-    doc.setFont("times", "normal");
-    doc.setFontSize(12);
-    doc.text(`تقارير ${filterType}`, 14, 20);
-
-    doc.autoTable({
-      head: [Object.keys(filteredReports[0] || {}).map((key) => key)],
-      body: filteredReports.map((report) => Object.values(report)),
-      theme: "grid",
-    });
-
-    doc.save(`${filterType}-reports.pdf`);
-  };
-
-  // تحديث البيانات
-  const handleRefresh = () => {
-    fetchData(reportTypes[tabValue]);
-  };
-
-  // تغيير نوع التقرير عند تغيير التبويب
-  const handleTabChange = (event, newValue) => {
-    setTabValue(newValue);
-    setFilterType(reportTypes[newValue]);
+  const calculateWorkHours = (checkIn, checkOut) => {
+    if (!checkIn || !checkOut) return "-";
+    const start = new Date(checkIn);
+    const end = new Date(checkOut);
+    const hoursWorked = Math.abs((end - start) / (1000 * 60 * 60)).toFixed(2);
+    return `${hoursWorked} ساعة`;
   };
 
   return (
-    <Box
-      p={3}
-      sx={{
-        background: "#F7F9FC",
-        minHeight: "100vh",
-        borderRadius: "16px",
-        textAlign: "right",
-      }}
-    >
+    <Box p={3} sx={{ background: "#F7F9FC", minHeight: "100vh", borderRadius: "16px" }}>
       <Typography variant="h4" gutterBottom sx={{ color: "#001F3F", fontWeight: "bold" }}>
         التقارير
       </Typography>
 
-      {/* تبويبات لأنواع التقارير */}
-      <Tabs value={tabValue} onChange={handleTabChange} sx={{ marginBottom: "20px" }}>
-        <Tab label="الحضور" />
-        <Tab label="الموظفين" />
-        <Tab label="المواقع" />
-        <Tab label="طلبات الاستئذان" />
-        <Tab label="الإشعارات" />
+      <Tabs value={tabValue} onChange={(e, newValue) => setTabValue(newValue)} sx={{ marginBottom: "20px" }}>
+        <Tab icon={<AccessTimeIcon />} label="الحضور والانصراف" />
+        <Tab icon={<NotificationsActiveIcon />} label="الإشعارات" />
+        <Tab icon={<LocationOnIcon />} label="الموقع" />
+        <Tab icon={<PersonIcon />} label="الموظفين" />
+        <Tab icon={<EventAvailableIcon />} label="الاستئذانات" />
       </Tabs>
 
-      {/* شريط البحث والفلترة */}
-      <Grid container spacing={2} mb={3} direction="row-reverse">
-        <Grid item xs={12} sm={6}>
-          <TextField
-            fullWidth
-            label="البحث حسب الاسم، التاريخ أو الموقع"
-            variant="outlined"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            sx={{ textAlign: "right" }}
-          />
-        </Grid>
-        <Grid item xs={12} sm={3}>
-          <FormControl fullWidth>
-            <InputLabel>القسم</InputLabel>
-            <Select
-              value={filterDepartment}
-              onChange={(e) => setFilterDepartment(e.target.value)}
-              sx={{ textAlign: "right" }}
-            >
-              <MenuItem value="">الكل</MenuItem>
-              <MenuItem value="IT">IT</MenuItem>
-              <MenuItem value="HR">HR</MenuItem>
-            </Select>
-          </FormControl>
-        </Grid>
-        <Grid item xs={12} sm={3}>
-          <FormControl fullWidth>
-            <InputLabel>الموقع</InputLabel>
-            <Select
-              value={filterLocation}
-              onChange={(e) => setFilterLocation(e.target.value)}
-              sx={{ textAlign: "right" }}
-            >
-              <MenuItem value="">الكل</MenuItem>
-              <MenuItem value="الفرع الرئيسي">الفرع الرئيسي</MenuItem>
-              <MenuItem value="الفرع الثاني">الفرع الثاني</MenuItem>
-            </Select>
-          </FormControl>
-        </Grid>
-      </Grid>
-
-      {/* زر تحديث البيانات */}
-      <Box sx={{ display: "flex", justifyContent: "flex-end", marginBottom: "20px" }}>
-        <IconButton onClick={handleRefresh} sx={{ background: "#3A6D8C", color: "white" }}>
-          <RefreshIcon />
-        </IconButton>
-      </Box>
-
-      {/* زر تحميل ملف PDF */}
-      <Box sx={{ display: "flex", justifyContent: "flex-end", marginBottom: "20px" }}>
-        <Button
-          variant="contained"
-          sx={{ background: "#3A6D8C", color: "white" }}
-          onClick={handleDownloadPDF}
-        >
-          تحميل كملف PDF
-        </Button>
-      </Box>
-
-      {/* الجدول */}
       {loading ? (
         <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "300px" }}>
           <CircularProgress />
         </Box>
-      ) : (
+      ) : tabValue === 0 ? (
         <TableContainer component={Paper} sx={{ borderRadius: "12px", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}>
           <Table>
             <TableHead sx={{ background: "#3A6D8C" }}>
               <TableRow>
-                {filteredReports.length > 0 &&
-                  Object.keys(filteredReports[0]).map((key) => (
-                    <TableCell key={key} sx={{ color: "white", fontWeight: "bold", textAlign: "right" }}>
-                      {key}
-                    </TableCell>
-                  ))}
+                <TableCell sx={{ color: "white", fontWeight: "bold" }}>اسم الموظف</TableCell>
+                <TableCell sx={{ color: "white", fontWeight: "bold" }}>وقت الحضور</TableCell>
+                <TableCell sx={{ color: "white", fontWeight: "bold" }}>وقت الانصراف</TableCell>
+                <TableCell sx={{ color: "white", fontWeight: "bold" }}>عدد ساعات العمل</TableCell>
+                <TableCell sx={{ color: "white", fontWeight: "bold" }}>الحالة</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {filteredReports.map((report) => (
-                <TableRow key={report.id}>
-                  {Object.values(report).map((value, index) => (
-                    <TableCell key={index} sx={{ textAlign: "right" }}>
-                      {value}
-                    </TableCell>
-                  ))}
+              {attendanceData.map((record) => (
+                <TableRow key={record._id}>
+                  <TableCell>{record.employeeName}</TableCell>
+                  <TableCell>{new Date(record.checkin).toLocaleString()}</TableCell>
+                  <TableCell>{record.checkout ? new Date(record.checkout).toLocaleString() : "-"}</TableCell>
+                  <TableCell>{calculateWorkHours(record.checkin, record.checkout)}</TableCell>
+                  <TableCell>{record.status}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         </TableContainer>
-      )}
+      ) : tabValue === 1 ? (
+        <TableContainer component={Paper} sx={{ borderRadius: "12px", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}>
+          <Table>
+            <TableHead sx={{ background: "#3A6D8C" }}>
+              <TableRow>
+                <TableCell sx={{ color: "white", fontWeight: "bold" }}>التاريخ</TableCell>
+                <TableCell sx={{ color: "white", fontWeight: "bold" }}>الرسالة</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {notifications.map((notification, index) => (
+                <TableRow key={index}>
+                  <TableCell>{new Date(notification.date).toLocaleString()}</TableCell>
+                  <TableCell>{notification.message}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      ) : tabValue === 2 ? (
+        <TableContainer component={Paper} sx={{ borderRadius: "12px", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}>
+          <Table>
+            <TableHead sx={{ background: "#3A6D8C" }}>
+              <TableRow>
+                <TableCell sx={{ color: "white", fontWeight: "bold" }}>اسم الموقع</TableCell>
+                <TableCell sx={{ color: "white", fontWeight: "bold" }}>العنوان</TableCell>
+                <TableCell sx={{ color: "white", fontWeight: "bold" }}>المدينة</TableCell>
+                <TableCell sx={{ color: "white", fontWeight: "bold" }}>الإحداثيات</TableCell>
+                <TableCell sx={{ color: "white", fontWeight: "bold" }}>النطاق</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              <TableRow>
+                <TableCell>{locationData.location}</TableCell>
+                <TableCell>{locationData.address}</TableCell>
+                <TableCell>{locationData.city}</TableCell>
+                <TableCell>{locationData.coordinates}</TableCell>
+                <TableCell>{locationData.range}</TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </TableContainer>
+      ) : tabValue === 3 ? (
+        <TableContainer component={Paper} sx={{ borderRadius: "12px", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}>
+          <Table>
+            <TableHead sx={{ background: "#3A6D8C" }}>
+              <TableRow>
+                <TableCell sx={{ color: "white", fontWeight: "bold" }}>الاسم</TableCell>
+                <TableCell sx={{ color: "white", fontWeight: "bold" }}>رقم الهاتف</TableCell>
+                <TableCell sx={{ color: "white", fontWeight: "bold" }}>البريد الإلكتروني</TableCell>
+                <TableCell sx={{ color: "white", fontWeight: "bold" }}>القسم</TableCell>
+                <TableCell sx={{ color: "white", fontWeight: "bold" }}>تاريخ الميلاد</TableCell>
+                <TableCell sx={{ color: "white", fontWeight: "bold" }}>الراتب</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              <TableRow>
+                <TableCell>{employeeData.name}</TableCell>
+                <TableCell>{employeeData.phone}</TableCell>
+                <TableCell>{employeeData.email}</TableCell>
+                <TableCell>{employeeData.department}</TableCell>
+                <TableCell>{employeeData.birthDate}</TableCell>
+                <TableCell>{employeeData.salary}</TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </TableContainer>
+      ) : tabValue === 4 ? (
+        <TableContainer component={Paper} sx={{ borderRadius: "12px", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}>
+          <Table>
+            <TableHead sx={{ background: "#3A6D8C" }}>
+              <TableRow>
+                <TableCell sx={{ color: "white", fontWeight: "bold" }}>اسم الموظف</TableCell>
+                <TableCell sx={{ color: "white", fontWeight: "bold" }}>نوع الاستئذان</TableCell>
+                <TableCell sx={{ color: "white", fontWeight: "bold" }}>السبب</TableCell>
+                <TableCell sx={{ color: "white", fontWeight: "bold" }}>حالة الموافقة</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              <TableRow>
+                <TableCell>{leaveData.employee}</TableCell>
+                <TableCell>{leaveData.leaveType}</TableCell>
+                <TableCell>{leaveData.reason}</TableCell>
+                <TableCell>{leaveData.approvalStatus}</TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </TableContainer>
+      ) : null}
     </Box>
   );
 }
