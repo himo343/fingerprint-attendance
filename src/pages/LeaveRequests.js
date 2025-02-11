@@ -15,7 +15,7 @@ import {
 } from "@mui/material";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CancelIcon from "@mui/icons-material/Cancel";
-import { fetchLeaveRequests, updateLeaveRequest } from "../Api/leaveApi"; // تم التحديث هنا
+import { fetchLeaveRequests, updateLeaveRequest } from "../Api/leaveApi";
 
 const LeaveRequests = () => {
   const [leaveRequests, setLeaveRequests] = useState([]);
@@ -26,7 +26,7 @@ const LeaveRequests = () => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const data = await fetchLeaveRequests(); // تم التحديث هنا
+        const data = await fetchLeaveRequests();
         setLeaveRequests(data);
       } catch (error) {
         console.error("Error fetching leave requests:", error);
@@ -39,32 +39,18 @@ const LeaveRequests = () => {
     fetchData();
   }, []);
 
-  // دالة لتصحيح القيم غير المتوقعة
-  const normalizeAdminResponse = (response) => {
-    if (response === "ٌRejecte" || response === "Rejecte") {
-      return "Rejected";
-    }
-    if (response === "Approved") {
-      return "Approved";
-    }
-    return "Pending"; // إذا كانت القيمة غير معروفة
-  };
-
-  const handleAction = async (id, adminResponse) => {
+  const handleAction = async (_id, adminResponse) => {
     try {
-      // تأكد من أن القيمة المرسلة صحيحة
-      const normalizedResponse = adminResponse === "Approved" ? "Approved" : "Rejected";
-      await updateLeaveRequest(id, normalizedResponse);
+      await updateLeaveRequest(_id, adminResponse);
 
       setSnackbar({
         open: true,
-        message: `تم ${normalizedResponse === "Approved" ? "الموافقة على" : "رفض"} الطلب بنجاح`,
+        message: `تم ${adminResponse === "Approved" ? "الموافقة على" : "رفض"} الطلب بنجاح`,
       });
 
-      // تحديث حالة الطلب في الواجهة الأمامية
       setLeaveRequests((prev) =>
         prev.map((request) =>
-          request._id === id ? { ...request, adminResponse: normalizedResponse } : request
+          request._id === _id ? { ...request, adminResponse } : request
         )
       );
     } catch (error) {
@@ -131,16 +117,16 @@ const LeaveRequests = () => {
                     <TableRow key={request._id}>
                       <TableCell>{request.employeeId?.fullname || "غير متوفر"}</TableCell>
                       <TableCell>{request.leaveType || "غير متوفر"}</TableCell>
-                      <TableCell>{request.startDate || "غير متوفر"}</TableCell>
-                      <TableCell>{request.endDate || "غير متوفر"}</TableCell>
+                      <TableCell>{new Date(request.startDate).toLocaleDateString() || "غير متوفر"}</TableCell>
+                      <TableCell>{new Date(request.endDate).toLocaleDateString() || "غير متوفر"}</TableCell>
                       <TableCell>{request.reason || "غير متوفر"}</TableCell>
                       <TableCell>
-                        {normalizeAdminResponse(request.adminResponse) === "Approved" ? "مقبول" :
-                          normalizeAdminResponse(request.adminResponse) === "Rejected" ? "مرفوض" :
+                        {request.adminResponse === "Approved" ? "مقبول" :
+                          request.adminResponse === "Rejected" ? "مرفوض" :
                             "قيد الانتظار"}
                       </TableCell>
                       <TableCell>
-                        {normalizeAdminResponse(request.adminResponse) === "Pending" && (
+                        {request.adminResponse === "Pending" && (
                           <>
                             <IconButton color="success" onClick={() => handleAction(request._id, "Approved")}>
                               <CheckCircleIcon />
